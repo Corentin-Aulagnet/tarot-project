@@ -1,4 +1,5 @@
 "use client";
+import "../../globals.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Players,Constants} from "@/utils/supabase/supabase";
@@ -88,16 +89,16 @@ export default function NewGamePage() {
             
         };
         
-        return (<main>
+        return (<main className="p-6">
             <nav className="flex gap-4 p-4">
-  <Link href="/">Home</Link>
-  <Link  className='pointer-events-none'
-  aria-disabled={true} href="/games/new">New Game</Link>
-</nav>
-        <div className="flex items-center justify-center min-h-screen">
+            <Link href="/">Home</Link>
+            <Link  className='pointer-events-none'
+            aria-disabled={true} href="/games/new">New Game</Link>
+            </nav>
+            
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-64 p-6 bg-white rounded shadow">
             <h1 className="text-xl font-bold">New Game</h1>
-
+            
             <div className = "flex flex-col gap-4">
             <h1 className="font-medium">Select Players</h1>
             <div className="flex flex-wrap gap-2">
@@ -119,7 +120,7 @@ export default function NewGamePage() {
             ))}
             </select>
             </div>
-
+            
             <div className="flex flex-row gap-4">
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" onChange={handleChange}>
@@ -143,29 +144,29 @@ export default function NewGamePage() {
                 isValid ? "border-gray-300" : "border-red-500"
                 }`} type="number" min={0} max={3} placeholder="Bouts" value={nBouts} onBlur={handleChangeNBouts} onChange={handleChangeNBouts} />
                 </div>
-
-            <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">  
-            <h1 className="font-medium">Enter Points</h1>
-            <div className ="flex-row gap-2">
-
-            <div className="flex-col gap-1">  
-            <h1 className="font-medium">Attack</h1>
-            <div className= "flex flex-row gap-3"> 
-            <input  className="w-auto" name="points_att" type="int" value={pointsAtt} placeholder="Points" onBlur ={handleChangePointsAtt}onChange={handleChangePointsAtt} />
-            <h1 style={{color : pointsAtt-pointsToMake >=0 ? "green" : "red"}}>{pointsAtt-pointsToMake >=0 ? "+" : ""}{pointsAtt-pointsToMake}</h1>
-            </div>
-            </div>
-
-            <span className="flex-4 self-center size-max"></span>
-
-            <div className="flex-col gap-1">  
-            <h1 className="font-medium">Defence</h1>
-            <div className= "flex flex-row gap-3"> 
-            <input name="points_def" type="int" value={pointsDef} placeholder="Points" onBlur ={handleChangePointsDef} onChange={handleChangePointsDef} />
-            <h1 style={{color : pointsDef-(91-pointsToMake) >=0 ? "green" : "red"}}>{pointsDef-(91-pointsToMake) >=0 ? "+" : ""}{pointsDef-(91-pointsToMake)}</h1>
-            </div></div>
-            </div></div>
-
+                
+                <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">  
+                <h1 className="font-medium">Enter Points</h1>
+                <div className ="flex-row gap-2">
+                
+                <div className="flex-col gap-1">  
+                <h1 className="font-medium">Attack</h1>
+                <div className= "flex flex-row gap-3"> 
+                <input  className="w-auto" name="points_att" type="int" value={pointsAtt} placeholder="Points" onBlur ={handleChangePointsAtt}onChange={handleChangePointsAtt} />
+                <h1 style={{color : pointsAtt-pointsToMake >=0 ? "green" : "red"}}>{pointsAtt-pointsToMake >=0 ? "+" : ""}{pointsAtt-pointsToMake}</h1>
+                </div>
+                </div>
+                
+                <span className="flex-4 self-center size-max"></span>
+                
+                <div className="flex-col gap-1">  
+                <h1 className="font-medium">Defence</h1>
+                <div className= "flex flex-row gap-3"> 
+                <input name="points_def" type="int" value={pointsDef} placeholder="Points" onBlur ={handleChangePointsDef} onChange={handleChangePointsDef} />
+                <h1 style={{color : pointsDef-(91-pointsToMake) >=0 ? "green" : "red"}}>{pointsDef-(91-pointsToMake) >=0 ? "+" : ""}{pointsDef-(91-pointsToMake)}</h1>
+                </div></div>
+                </div></div>
+                
                 <div className="flex flex-row gap-4">
                 <h1 className="font-medium">Select Poignee</h1>
                 <select name="poignee_type" onChange={handleChange}>
@@ -208,16 +209,16 @@ export default function NewGamePage() {
                         s = "Announced - Failed";
                         break;
                         case "AnnoucedSucceeded":
-                            s = "Announced - Succeeded";
-                            break;
+                        s = "Announced - Succeeded";
+                        break;
                         case "UnannoucedSucceeded":
-                            s = "Unannounced - Succeeded";
-                            break;
+                        s = "Unannounced - Succeeded";
+                        break;
                     }
                     return (<option key={c} value={c}>{s}</option>)
                 })}
                 </select>
                 <button className="bg-black text-white p-2">Create</button>
-                </form></div></main>
+                </form></main>
             );
         }
