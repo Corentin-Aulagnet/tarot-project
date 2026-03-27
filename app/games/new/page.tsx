@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Players,Constants} from "@/utils/supabase/supabase";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
+import { NavBar } from "@/components/NavBar";
 const CONTRACTS = ["Petite", "Garde", "Garde-Sans", "Garde-Contre"];
 export default function NewGamePage() {
     const router = useRouter();
@@ -90,11 +91,7 @@ export default function NewGamePage() {
         };
         
         return (<main className="p-6">
-            <nav className="flex gap-4 p-4">
-            <Link href="/">Home</Link>
-            <Link  className='pointer-events-none'
-            aria-disabled={true} href="/games/new">New Game</Link>
-            </nav>
+            <NavBar />
             
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-64 p-6 bg-white rounded shadow">
             <h1 className="text-xl font-bold">New Game</h1>
