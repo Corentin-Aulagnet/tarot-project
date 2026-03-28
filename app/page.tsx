@@ -4,7 +4,8 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client"
 import {buildGamePlayerTotals} from "@/lib/scoreUtils"
 import {GamesTable,GameTableProps} from "@/components/GameTable/GameTable"
-import { NavBar } from "@/components/NavBar"
+
+import Example from "@/components/NavBar"
 import "./globals.css"
 
 export default async function HomePage() {
@@ -26,7 +27,7 @@ export default async function HomePage() {
   const table = buildGamePlayerTotals(games, players)
 
   return (<main className="p-6">
-    <NavBar />
+    <Example/>
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} />
     <Link  href="/games/new"

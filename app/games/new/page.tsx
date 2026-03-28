@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Players,Constants} from "@/utils/supabase/supabase";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
-import { NavBar } from "@/components/NavBar";
+import Example from "@/components/NavBar";
 const CONTRACTS = ["Petite", "Garde", "Garde-Sans", "Garde-Contre"];
 export default function NewGamePage() {
     const router = useRouter();
     const [players, setPlayers] = useState<Players[]>([]);
+    const [loaded, setLoaded] = useState(false);
     const [players_uid,setSelectedPlayers] = useState<Players[]>([]);
     const [pointsAtt, setPointsAtt] = useState(0);
     const pointsDef = 91 - pointsAtt;
@@ -27,16 +28,17 @@ export default function NewGamePage() {
         petit_au_bout_player_id: null as string | null,
         petit_au_bout_lost: null as boolean | null,
     });
-    
-    useEffect(() => {
-        supabase.from("Players").select("*").then(({ data, error }) => {
+   
+        useEffect( ()=>{
+            supabase.from("Players").select("*").then(({ data, error }) => {
             if (error) {
                 console.error("Error fetching players:", error);
                 return;
             }
-            setPlayers(data || []);
-        })});
-        
+            if (data) {setPlayers(data as Players[]); setLoaded(true);}
+        })},[]);
+
+
         const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             const { name, value } = e.target;
             setForm((prev) => ({ ...prev, [name]: value }));
@@ -91,7 +93,7 @@ export default function NewGamePage() {
         };
         
         return (<main className="p-6">
-            <NavBar />
+            <Example />
             
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-64 p-6 bg-white rounded shadow">
             <h1 className="text-xl font-bold">New Game</h1>

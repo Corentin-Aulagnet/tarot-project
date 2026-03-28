@@ -7,7 +7,7 @@ export type GameTableProps={
 
 export function GamesTable({ games, players, table }:GameTableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto oveflow:auto" >
       <table className="border-collapse border w-full">
         <thead>
           <tr>
