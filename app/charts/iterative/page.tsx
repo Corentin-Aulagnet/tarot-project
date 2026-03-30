@@ -3,10 +3,12 @@ import "../../globals.css";
 import { IterativeTotalLineChart } from "@/components/IterativeTotalLineChart"
 import Example from "@/components/NavBar";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
-import { supabase } from "@/utils/supabase/server";
-
+import { createClient } from "@/utils/supabase/client";
+import { cookies } from "next/headers";
 export default async function Page() {
- const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
+
+const supabase = createClient();
+  const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
   const { data: players }  = await supabase.from("Players").select("*");
   if (!games || !players) {
     return <div>Failed to load data</div>

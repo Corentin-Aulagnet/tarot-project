@@ -1,21 +1,25 @@
 //"use client";
 import Link from "next/link";
-//import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabase/server"
+import { createClient } from "@/utils/supabase/client"
 import {buildGamePlayerTotals,aggregateTotalScores,aggregateIterativeScores} from "@/lib/scoreUtils"
 import { Metadata } from 'next';
 import {GamesTable,GameTableProps} from "@/components/GameTable/GameTable"
 import {IterativeTotalLineChartCanOpen} from "@/components/IterativeTotalLineChart";
 import Example from "@/components/NavBar"
 import "./globals.css"
+import { cookies } from "next/headers";
 
-export const metadata: Metadata = {
-  title: 'Tarot Score Tracker | Games',
-  description:
-    'Track your tarot games and scores',
-};
+export const dynamic = "force-dynamic"; // ensure per-request
+
+export async function generateMetadata(): Promise<Metadata> {
+
+  return {
+    title:"Tarot Score Tracker",
+    description: "Track your tarot games and scores",
+  };
+}
 export default async function HomePage() {
-
+  const supabase = createClient();
   const { data: games } = await supabase
     .from("Games")
     .select("*")
