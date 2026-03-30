@@ -5,7 +5,7 @@ import Example from "@/components/NavBar";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
 import { supabase } from "@/utils/supabase/server";
 
-export default async function Page({ searchParams }) {
+export default async function Page() {
  const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
   const { data: players }  = await supabase.from("Players").select("*");
   if (!games || !players) {
