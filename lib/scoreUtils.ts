@@ -106,3 +106,18 @@ export function buildGamePlayerTotals(games:Games[], players:Players[]) {
 
   return result
 }
+export function aggregateTotalScores(games:Games[], players:Players[]) {
+  const result = {} as Record<Players['id'], number>
+  players.forEach(p => result[p.id] = 0)
+  games.forEach(g => {
+    const gameResult = games.find(gr => gr.id === g.id);
+    if (!gameResult) return;  
+    const points = getPointsForGame(g, players);
+    players.forEach(p => {
+      if(points[p.id]!==undefined){
+        result[p.id] += points[p.id]
+      }
+    })  
+  })
+  return result;
+}

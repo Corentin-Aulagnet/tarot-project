@@ -6,7 +6,10 @@ import { Players,Constants} from "@/utils/supabase/supabase";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import Example from "@/components/NavBar";
+import { Metadata } from "next";
+
 const CONTRACTS = ["Petite", "Garde", "Garde-Sans", "Garde-Contre"];
+
 export default function NewGamePage() {
     const router = useRouter();
     const [players, setPlayers] = useState<Players[]>([]);
@@ -114,7 +117,7 @@ export default function NewGamePage() {
             <h1 className="font-medium">Select Taker</h1>
             <select name="taker_id" onChange={handleChange}>
             <option value="">Taker</option>
-            {players.map((p) => (
+            {players_uid.map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>
@@ -124,7 +127,7 @@ export default function NewGamePage() {
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" onChange={handleChange}>
             <option value="">Select Call Player</option>
-            {players.map((p) => (
+            {players_uid.map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>

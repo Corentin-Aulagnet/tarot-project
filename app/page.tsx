@@ -2,14 +2,14 @@
 import Link from "next/link";
 //import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client"
-import {buildGamePlayerTotals} from "@/lib/scoreUtils"
+import {buildGamePlayerTotals,aggregateTotalScores} from "@/lib/scoreUtils"
 import { Metadata } from 'next';
-import {GamesTable,GameTableProps,StickyTable} from "@/components/GameTable/GameTable"
+import {GamesTable,GameTableProps} from "@/components/GameTable/GameTable"
 
 import Example from "@/components/NavBar"
 import "./globals.css"
 export const metadata: Metadata = {
-  title: 'Tarot Score Tracker',
+  title: 'Tarot Score Tracker | Games',
   description:
     'Track your tarot games and scores',
 };
@@ -30,11 +30,11 @@ export default async function HomePage() {
   }
 
   const table = buildGamePlayerTotals(games, players)
-
+  const totals = aggregateTotalScores(games, players)
   return (<main className="p-6">
     <Example/>
     <h1 className="font-extrabold">All Games</h1>
-    <GamesTable games={games} players={players} table={table} />
+    <GamesTable games={games} players={players} table={table} totals={totals}/>
     {/*<StickyTable/>*/}
      <div className="flex justify-center mt-6">
     <Link  href="/games/new"

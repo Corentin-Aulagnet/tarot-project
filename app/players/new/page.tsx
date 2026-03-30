@@ -6,6 +6,7 @@ import { Players,Constants} from "@/utils/supabase/supabase";
 import {supabase} from "@/utils/supabase/client";
 import Example from "@/components/NavBar";
 import { useState } from "react";
+import { Metadata } from "next";
 
 export default function NewPlayerPage() {
   const router = useRouter();
