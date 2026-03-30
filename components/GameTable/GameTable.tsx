@@ -24,7 +24,7 @@ export function GamesTable({ games, players, table }:GameTableProps) {
           {games.map(game => (
             <tr key={game.id}>
               <td className="border p-2 font-medium">
-                {game.id}
+                {new Date(game.created_at).toLocaleDateString()} {new Date(game.created_at).toLocaleTimeString()}
               </td>
 
               {players.map(player => (
