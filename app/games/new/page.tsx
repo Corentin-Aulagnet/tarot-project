@@ -95,7 +95,7 @@ export default function NewGamePage() {
         return (<main className="p-6">
             <Example />
             
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-64 p-6 bg-white rounded shadow">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 bg-white rounded shadow w-auto">
             <h1 className="text-xl font-bold">New Game</h1>
             
             <div className = "flex flex-col gap-4">
@@ -129,7 +129,7 @@ export default function NewGamePage() {
             ))}
             </select>
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Contract</h1>
             <select name="contract" onChange={handleChange}>
             {CONTRACTS.map((c) => (
@@ -137,7 +137,7 @@ export default function NewGamePage() {
             ))}
             </select>
             </div>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Number of Bouts</h1>
             <input name="n_bouts" className={`border p-2 rounded ${
                 isValid ? "border-gray-300" : "border-red-500"
