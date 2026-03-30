@@ -3,11 +3,16 @@ import Link from "next/link";
 //import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client"
 import {buildGamePlayerTotals} from "@/lib/scoreUtils"
-import {GamesTable,GameTableProps} from "@/components/GameTable/GameTable"
+import { Metadata } from 'next';
+import {GamesTable,GameTableProps,StickyTable} from "@/components/GameTable/GameTable"
 
 import Example from "@/components/NavBar"
 import "./globals.css"
-
+export const metadata: Metadata = {
+  title: 'Tarot Score Tracker',
+  description:
+    'Track your tarot games and scores',
+};
 export default async function HomePage() {
   const supabase = createClient()
 
@@ -30,6 +35,7 @@ export default async function HomePage() {
     <Example/>
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} />
+    {/*<StickyTable/>*/}
      <div className="flex justify-center mt-6">
     <Link  href="/games/new"
    
