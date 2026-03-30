@@ -60,16 +60,14 @@ export default function NewGamePage() {
         const handleChangePointsAtt = (e:React.ChangeEvent<HTMLInputElement>) => {
             const { value } = e.target;
             const numericValue = parseInt(value, 10);
-            if (isNaN(numericValue)) return; // Ignore non-numeric input
-            setPointsAtt(numericValue);
-            //setPointsDef(91 - numericValue) // Auto set defence points to 91 - attack points
+            setPointsAtt((isNaN(numericValue) ? 0 : numericValue));
+
         };
         
         const handleChangePointsDef = (e:React.ChangeEvent<HTMLInputElement>) => {
             const {value } = e.target;
             const numericValue = parseInt(value, 10);
-            if (isNaN(numericValue)) return; // Ignore non-numeric input
-            setPointsAtt(91 - numericValue) // Auto set attack points to 91 - defence points
+            setPointsAtt(91 - (isNaN(numericValue) ? 0 : numericValue)); // Auto set attack points to 91 - defence points
             
         };
         const handleChangeNBouts = (e:React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +142,7 @@ export default function NewGamePage() {
             <h1 className="font-medium">Select Number of Bouts</h1>
             <input name="n_bouts" className={`border p-2 rounded ${
                 isValid ? "border-gray-300" : "border-red-500"
-                }`} type="number" min={0} max={3} placeholder="Bouts" value={nBouts} onBlur={handleChangeNBouts} onChange={handleChangeNBouts} />
+                }`} type="number" min={0} max={3} placeholder="Bouts"  onBlur={handleChangeNBouts}  />
                 </div>
                 
                 <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">  
@@ -154,7 +152,7 @@ export default function NewGamePage() {
                 <div className="flex-col gap-1">  
                 <h1 className="font-medium">Attack</h1>
                 <div className= "flex flex-row gap-3"> 
-                <input  className="w-auto" name="points_att" type="int" value={pointsAtt} placeholder="Points" onBlur ={handleChangePointsAtt}onChange={handleChangePointsAtt} />
+                <input  className="w-auto" name="points_att" type="int"  value={pointsAtt} placeholder="Points" onChange ={handleChangePointsAtt} onBlur ={handleChangePointsAtt} />
                 <h1 style={{color : pointsAtt-pointsToMake >=0 ? "green" : "red"}}>{pointsAtt-pointsToMake >=0 ? "+" : ""}{pointsAtt-pointsToMake}</h1>
                 </div>
                 </div>
@@ -164,7 +162,7 @@ export default function NewGamePage() {
                 <div className="flex-col gap-1">  
                 <h1 className="font-medium">Defence</h1>
                 <div className= "flex flex-row gap-3"> 
-                <input name="points_def" type="int" value={pointsDef} placeholder="Points" onBlur ={handleChangePointsDef} onChange={handleChangePointsDef} />
+                <input name="points_def" type="int"  value={pointsDef} placeholder="Points" onChange ={handleChangePointsDef} onBlur ={handleChangePointsDef}  />
                 <h1 style={{color : pointsDef-(91-pointsToMake) >=0 ? "green" : "red"}}>{pointsDef-(91-pointsToMake) >=0 ? "+" : ""}{pointsDef-(91-pointsToMake)}</h1>
                 </div></div>
                 </div></div>

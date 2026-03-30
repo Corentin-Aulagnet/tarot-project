@@ -22,19 +22,27 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
         </thead>
 
         <tbody>
-          {games.map((game, index) => (
-            <tr key={game.id} className="even:bg-gray-50">
-              <td className={`border px-4 py-2 bg-white ${
-                  index === 0 ? "sticky top-10 z-20 font-bold" : ""
-               }`}>
-                {index===0 ? "Totals" : `${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
+          <tr className="even:bg-gray-50">
+              <td className={`border px-4 py-2 bg-white sticky top-10 z-20 font-bold`}>
+                Totals 
               </td>
 
               {players.map(player => (
-                <td className={`border px-4 py-2 bg-white text-center ${
-                  index === 0 ? `sticky top-10 z-20 font-bold ${totals[player.id] >=0 && index === 0 ? "text-green-500" : "text-red-500"}` : ""
+                <td className={`border px-4 py-2 bg-white text-center sticky top-10 z-20 font-bold ${totals[player.id] >=0 ? " text-green-500" : " text-red-500"}                 `} key={player.id} >
+                  {totals[player.id]?.toString() ?? "-"}
+                </td>
+              ))}
+            </tr>
+          {games.map((game) => (
+            <tr key={game.id} className="even:bg-gray-50">
+              <td className={`border px-4 py-2 bg-white `}>
+                {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
+              </td>
+
+              {players.map(player => (
+                <td className={`border px-4 py-2 bg-white text-center 
                 } `} key={player.id} >
-                  {index === 0 ? totals[player.id]?.toString() ?? "-" : table[game.id][player.id]?.toString() ?? "-"}
+                  {table[game.id][player.id]?.toString() ?? "-"}
                 </td>
               ))}
             </tr>
