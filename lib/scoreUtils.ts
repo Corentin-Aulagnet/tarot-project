@@ -60,7 +60,7 @@ function getPointsForGame(game:Games, players:Players[]) {
   const points = (Math.abs(game.points_att - pointsToMake) + 25) * mult;
   const attack_team = [game.taker_id, game.call_id];
   // Petit au bout
-  const prime_petit_au_bout = game.petit_au_bout_player_id ? 10: 0;
+  const prime_petit_au_bout = game.petit_au_bout_player_id ? 10*mult: 0;
   // If the attack gets the petit au bout and wins it, or if the defence gets the petit au bout and lose it, count positively for attack
   const petit_au_bout_by_attack = attack_team.includes(game.petit_au_bout_player_id || "");
   const prime_petit_au_bout_att = (petit_au_bout_by_attack && !game.petit_au_bout_lost) ||

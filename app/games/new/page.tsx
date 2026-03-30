@@ -93,6 +93,8 @@ export default function NewGamePage() {
                           poignee_player_id: form.poignee_player_id,
                           misere_type:form.misere_type,
                           misere_player_id:form.misere_player_id,
+                          petit_au_bout_player_id: form.petit_au_bout_player_id,
+                          petit_au_bout_lost:form.petit_au_bout_lost,
                            points_att: pointsAtt,
                             n_bouts: nBouts,
                              players_uid: players_uid.map(p => p.id)}),
