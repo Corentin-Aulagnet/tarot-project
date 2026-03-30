@@ -30,11 +30,13 @@ export default async function HomePage() {
     <Example/>
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} />
+     <div className="flex justify-center mt-6">
     <Link  href="/games/new"
-  className="bg-blue-500 text-black px-6 py-3 rounded text-lg hover:bg-blue-600 transition"
+   
+  className="bg-blue-500 text-white px-6 py-3 rounded text-lg hover:bg-blue-600 transition"
 >
   Start New Game
-</Link>
+</Link></div>
   </main>)
 }
 /*
