@@ -30,6 +30,8 @@ export default function NewGamePage() {
         poignee_player_id: null as string | null,
         petit_au_bout_player_id: null as string | null,
         petit_au_bout_lost: null as boolean | null,
+        misere_type: null as string | null,
+        misere_player_id: null as string | null,
     });
    
         useEffect( ()=>{
@@ -82,7 +84,18 @@ export default function NewGamePage() {
             e.preventDefault();
             const res = await fetch("/api/submit", {
                 method: "POST",
-                body: JSON.stringify({call_id: form.call_id, contract: form.contract, taker_id: form.taker_id, chelem: form.chelem, chelem_player_id: form.chelem_player_id, poignee_type: form.poignee_type, poignee_player_id: form.poignee_player_id, points_att: pointsAtt, n_bouts: nBouts, players_uid: players_uid.map(p => p.id)}),
+                body: JSON.stringify({call_id: form.call_id,
+                     contract: form.contract,
+                      taker_id: form.taker_id,
+                       chelem: form.chelem,
+                        chelem_player_id: form.chelem_player_id,
+                         poignee_type: form.poignee_type,
+                          poignee_player_id: form.poignee_player_id,
+                          misere_type:form.misere_type,
+                          misere_player_id:form.misere_player_id,
+                           points_att: pointsAtt,
+                            n_bouts: nBouts,
+                             players_uid: players_uid.map(p => p.id)}),
             });
             
             if (res.ok)
@@ -99,7 +112,7 @@ export default function NewGamePage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 bg-white rounded shadow w-auto">
             <h1 className="text-xl font-bold">New Game</h1>
             
-            <div className = "flex flex-col gap-4">
+            <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Players</h1>
             <div className="flex flex-wrap gap-2">
             {players.map((p) => (
@@ -111,7 +124,7 @@ export default function NewGamePage() {
             </div>
             </div>
             
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Taker</h1>
             <select name="taker_id" onChange={handleChange}>
             <option value="">Taker</option>
@@ -121,7 +134,7 @@ export default function NewGamePage() {
             </select>
             </div>
             
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" onChange={handleChange}>
             <option value="">Select Call Player</option>
@@ -151,7 +164,7 @@ export default function NewGamePage() {
                 
                 <div className="flex-col gap-1">  
                 <h1 className="font-medium">Attack</h1>
-                <div className= "flex flex-row gap-3"> 
+                <div className= "flex flex-row flex-wrap gap-3"> 
                 <input  className="w-auto" name="points_att" type="int"  value={pointsAtt} placeholder="Points" onChange ={handleChangePointsAtt} onBlur ={handleChangePointsAtt} />
                 <h1 style={{color : pointsAtt-pointsToMake >=0 ? "green" : "red"}}>{pointsAtt-pointsToMake >=0 ? "+" : ""}{pointsAtt-pointsToMake}</h1>
                 </div>
@@ -161,16 +174,34 @@ export default function NewGamePage() {
                 
                 <div className="flex-col gap-1">  
                 <h1 className="font-medium">Defence</h1>
-                <div className= "flex flex-row gap-3"> 
+                <div className= "flex flex-row flex-wrap gap-3"> 
                 <input name="points_def" type="int"  value={pointsDef} placeholder="Points" onChange ={handleChangePointsDef} onBlur ={handleChangePointsDef}  />
                 <h1 style={{color : pointsDef-(91-pointsToMake) >=0 ? "green" : "red"}}>{pointsDef-(91-pointsToMake) >=0 ? "+" : ""}{pointsDef-(91-pointsToMake)}</h1>
                 </div></div>
                 </div></div>
                 
-                <div className="flex flex-row gap-4">
+                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+                <h1 className="font-medium">Select Misere</h1>
+                <select name="misere_type" onChange={handleChange}>
+                <option defaultValue="">None</option>
+                {Constants.public.Enums.Misere.map((p) => (
+                    <option key={p}>{p}</option>
+                ))}
+                </select>
+                <select name="misere_player_id" onChange={handleChange}>
+                <option defaultValue="">Player</option>
+                {players_uid.map((p) => (
+                    <option key={p.id} value={p.id}>
+                    {p.Name}
+                    </option>
+                ))}
+                </select>
+                </div>
+                
+                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Poignee</h1>
                 <select name="poignee_type" onChange={handleChange}>
-                <option defaultValue="">Poignee</option>
+                <option defaultValue="">None</option>
                 {Constants.public.Enums.Poignee.map((p) => (
                     <option key={p}>{p}</option>
                 ))}
@@ -184,8 +215,8 @@ export default function NewGamePage() {
                 ))}
                 </select>
                 </div>
-                
-                <div className="flex flex-row gap-4">
+
+                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Petit au bout</h1>
                 <select name="petit_au_bout_player_id" onChange={handleChange}>
                 <option defaultValue="">Player</option>
@@ -201,6 +232,7 @@ export default function NewGamePage() {
                 <option value="false">Won</option>
                 </select>
                 </div>
+
                 <select name="chelem" onChange={handleChange}>
                 <option value="">Chelem</option>
                 {Constants.public.Enums.Chelem.map((c) => {let s=""

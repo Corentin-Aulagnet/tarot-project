@@ -29,6 +29,8 @@ export type GameResult={
     petit_au_bout_lost?: boolean;
     chelem: Chelem
     chelem_player_id?: Players['id'];
+    misere_type?: string;
+    misere_player_id?: Players['id'];
 
 }
 
@@ -68,24 +70,35 @@ function getPointsForGame(game:Games, players:Players[]) {
   const prime_chelem = game.chelem === "AnnoucedSucceeded" ? 200 : game.chelem === "UnannoucedSucceeded" ? 400 : game.chelem === "AnnoucedFailed" ? -200 : 0;
   let poigneeValue = 0;
     if (game.poignee_type === "Simple") {
-      poigneeValue = 20 * mult;
+      poigneeValue = 20;
     } else if (game.poignee_type === "Double") {
-      poigneeValue = 30 * mult;
+      poigneeValue = 30;
     } else if (game.poignee_type === "Triple") {
-      poigneeValue = 40 * mult;
+      poigneeValue = 40;
     }else{
       poigneeValue = 0;
     }
-  
+  let misereValue = 0;
+  if(game.misere_type === "Tête" || game.misere_type === "Atout"){
+    misereValue = 10;
+  }
+
   const prime_poignee_att = contractDone ? poigneeValue : -poigneeValue;
   const prime_poignee_def = -prime_poignee_att;
+  const pointsAtt = contractDone ? points : -points;
+  const pointsDef = -pointsAtt;
   game.players_uid.forEach(p => {
     if (p === game.taker_id) {
-      result[p] = (points+prime_petit_au_bout_att) * 2 + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_att
+      result[p] = (pointsAtt+prime_petit_au_bout_att+prime_poignee_att) * 2 + (p === game.chelem_player_id ? prime_chelem : 0)
     } else if (p === game.call_id) {
-      result[p] = points + prime_petit_au_bout_att + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_att
+      result[p] = pointsAtt + prime_petit_au_bout_att + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_att
     }else{
-      result[p] = -points +prime_petit_au_bout_def + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_def
+      result[p] = pointsDef +prime_petit_au_bout_def + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_def
+    }
+    if(game.misere_player_id === p){
+      result[p] += misereValue*4;
+    }else{
+      result[p] -= misereValue;
     }
   })
   return result;

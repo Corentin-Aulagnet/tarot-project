@@ -1,3 +1,5 @@
+export type Games = Database["public"]["Tables"]["Games"]["Row"];
+export type Players = Database["public"]["Tables"]["Players"]["Row"];
 export type Json =
   | string
   | number
@@ -47,6 +49,8 @@ export type Database = {
           contract: Database["public"]["Enums"]["Contract"]
           created_at: string
           id: string
+          misere_player_id: string | null
+          misere_type: Database["public"]["Enums"]["Misere"] | null
           n_bouts: number
           petit_au_bout_lost: boolean | null
           petit_au_bout_player_id: string | null
@@ -63,6 +67,8 @@ export type Database = {
           contract?: Database["public"]["Enums"]["Contract"]
           created_at?: string
           id?: string
+          misere_player_id?: string | null
+          misere_type?: Database["public"]["Enums"]["Misere"] | null
           n_bouts: number
           petit_au_bout_lost?: boolean | null
           petit_au_bout_player_id?: string | null
@@ -79,6 +85,8 @@ export type Database = {
           contract?: Database["public"]["Enums"]["Contract"]
           created_at?: string
           id?: string
+          misere_player_id?: string | null
+          misere_type?: Database["public"]["Enums"]["Misere"] | null
           n_bouts?: number
           petit_au_bout_lost?: boolean | null
           petit_au_bout_player_id?: string | null
@@ -99,6 +107,13 @@ export type Database = {
           {
             foreignKeyName: "Games_chelem_player_id_fkey"
             columns: ["chelem_player_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Games_misere_player_id_fkey"
+            columns: ["misere_player_id"]
             isOneToOne: false
             referencedRelation: "Players"
             referencedColumns: ["id"]
@@ -162,8 +177,7 @@ export type Database = {
     }
   }
 }
-export type Games = Database["public"]["Tables"]["Games"]["Row"]
-export type Players = Database["public"]["Tables"]["Players"]["Row"]
+
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
