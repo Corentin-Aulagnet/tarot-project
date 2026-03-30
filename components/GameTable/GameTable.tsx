@@ -1,5 +1,6 @@
 'use client'
 import { Games,Players } from "../../utils/supabase/supabase";
+import { getColorFromId } from "../IterativeTotalLineChart";
 export type GameTableProps={
   games:Games[],
   players:Players[],
@@ -14,7 +15,7 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
           <tr>
             <th className="sticky top-0 left-0 z-30 bg-gray-100 border px-4 py-2">Game</th>
             {players.map(p => (
-              <th key={p.id} className="sticky top-0 left-0 z-10 bg-gray-100 border px-4 py-2">
+              <th key={p.id} className="sticky top-0 left-0 z-10 bg-gray-100 border px-4 py-2" style={{ color: getColorFromId(p.id) }}>
                 {p.Name}
               </th>
             ))}
@@ -41,7 +42,7 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
 
               {players.map(player => (
                 <td className={`border px-4 py-2 bg-white text-center 
-                } `} key={player.id} >
+                } `} key={player.id}  >
                   {table[game.id][player.id]?.toString() ?? "-"}
                 </td>
               ))}

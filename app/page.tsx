@@ -2,10 +2,10 @@
 import Link from "next/link";
 //import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client"
-import {buildGamePlayerTotals,aggregateTotalScores} from "@/lib/scoreUtils"
+import {buildGamePlayerTotals,aggregateTotalScores,aggregateIterativeScores} from "@/lib/scoreUtils"
 import { Metadata } from 'next';
 import {GamesTable,GameTableProps} from "@/components/GameTable/GameTable"
-
+import IterativeTotalLineChart from "@/components/IterativeTotalLineChart";
 import Example from "@/components/NavBar"
 import "./globals.css"
 export const metadata: Metadata = {
@@ -31,8 +31,10 @@ export default async function HomePage() {
 
   const table = buildGamePlayerTotals(games, players)
   const totals = aggregateTotalScores(games, players)
+  const chartData = aggregateIterativeScores(games, players)    
   return (<main className="p-6">
     <Example/>
+    <IterativeTotalLineChart chartData={chartData} players={players}/>
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} totals={totals}/>
     {/*<StickyTable/>*/}

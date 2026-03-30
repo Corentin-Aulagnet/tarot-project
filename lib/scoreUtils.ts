@@ -134,3 +134,41 @@ export function aggregateTotalScores(games:Games[], players:Players[]) {
   })
   return result;
 }
+export function aggregateIterativeScores(games:Games[], players:Players[]) {
+  const result = {} as Record<Games['id'], Record<Players['id'], number> >
+  games.forEach(g => {
+    result[g.id] = {};
+    players.forEach(p => {
+      result[g.id][p.id] = 0;
+    });
+  });
+  const sortedGames = [...games].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  let previousGameId: Games['id'] | null = null;
+  sortedGames.forEach(g => {
+    const gameResult = games.find(gr => gr.id === g.id);
+    if (!gameResult) return;
+    const points = getPointsForGame(g, players);
+    players.forEach(p => {
+      if(points[p.id]!==undefined){
+        if(previousGameId){
+        result[g.id][p.id] = (result[previousGameId][p.id]) + points[p.id]
+      }
+      else{        result[g.id][p.id] = points[p.id]
+      }      
+  }})
+    previousGameId = g.id;
+  })
+  let i=0;
+  const rows = sortedGames.map((game) => {
+  const row: Record<string, any> = {
+    gameNumber: ++i,
+  };
+
+  players.forEach((player) => {
+    row[player.Name] = result[game.id]?.[player.id] ?? null;
+  });
+
+  return row;
+});
+  return rows;
+}
