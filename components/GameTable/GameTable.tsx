@@ -15,7 +15,7 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
           <tr>
             <th className="sticky top-0 left-0 z-30 bg-gray-100 border px-4 py-2">Game</th>
             {players.map(p => (
-              <th key={p.id} className="sticky top-0 left-0 z-10 bg-gray-100 border px-4 py-2" style={{ color: getColorFromId(p.id) }}>
+              <th key={p.id} className="sticky top-0 left-0 z-10 bg-gray-100 border px-4 py-2" style={{ color: getColorFromId(p.id, players) }}>
                 {p.Name}
               </th>
             ))}

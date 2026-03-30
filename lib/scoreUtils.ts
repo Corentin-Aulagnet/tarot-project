@@ -160,7 +160,7 @@ export function aggregateIterativeScores(games:Games[], players:Players[]) {
   })
   let i=0;
   const rows = sortedGames.map((game) => {
-  const row: Record<string, any> = {
+  const row: Record<string, number | null> = {
     gameNumber: ++i,
   };
 
