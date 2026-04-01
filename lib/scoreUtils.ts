@@ -144,18 +144,20 @@ export function aggregateIterativeScores(games:Games[], players:Players[]) {
   });
   const sortedGames = [...games].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   let previousGameId: Games['id'] | null = null;
+  const yannId = players.find(p => p.Name === "Yann")?.id || "";
   sortedGames.forEach(g => {
     const gameResult = games.find(gr => gr.id === g.id);
     if (!gameResult) return;
     const points = getPointsForGame(g, players);
     players.forEach(p => {
-      if(points[p.id]!==undefined){
-        if(previousGameId){
-        result[g.id][p.id] = (result[previousGameId][p.id]) + points[p.id]
+      if(points[p.id]!==undefined){//Player p participated in this game
+        
+        result[g.id][p.id] = (previousGameId ? (result[previousGameId][p.id]) : 0) + points[p.id]
       }
-      else{        result[g.id][p.id] = points[p.id]
+      else{        //Player p did not participate in the previous game, so we take the previous total
+        result[g.id][p.id] = (previousGameId ? result[previousGameId][p.id] : 0)
       }      
-  }})
+  })
     previousGameId = g.id;
   })
   let i=0;

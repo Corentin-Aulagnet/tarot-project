@@ -1,8 +1,8 @@
 "use client";
 import { Players } from '@/utils/supabase/supabase';
 import { on } from 'events';
-import { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { useEffect, useMemo, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam } from 'recharts';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/client';
 import { Games } from '../utils/supabase/supabase';
@@ -24,7 +24,8 @@ export function generateColors(count: number) {
   });
 }
 export  function IterativeTotalLineChart({ chartData ,players}: { chartData: Record<string, number | null>[] , players: Players[]}) {  
-  
+  const [active, setActive] = useState<boolean[]>(players.map(() => true));
+
   return (<div className="flex justify-center"  >
 <LineChart
       style={{ width: '100%', maxWidth: '700px', height: '100%', maxHeight: '70vh', aspectRatio: 1.618 }}
@@ -69,13 +70,22 @@ export  function IterativeTotalLineChart({ chartData ,players}: { chartData: Rec
       ))}
       
     </LineChart></div>);      }
+
 export function IterativeTotalLineChartCanOpen({ chartData ,players}: { chartData: Record<string, number | null>[] , players: Players[]}) {  
-  const router = useRouter();
-  return (<div className="flex justify-center" onClick={()=> router.push("/charts/iterative",{})}>
+    const [activeIndex, setActiveIndex] = useState<number>(-1);
+    const handleMouseLeave = useMemo(() => () => setActiveIndex(-1), []);
+  const handleMouseMove = useMemo(
+    () =>
+      ({ activeIndex }: MouseHandlerDataParam) =>
+        setActiveIndex(Number(activeIndex ?? -1)),
+    [],
+  );
+  return (<div className="flex justify-center" >
 <LineChart
       style={{ width: '100%', maxWidth: '700px', height: '100%', maxHeight: '70vh', aspectRatio: 1.618 }}
       responsive
       data={chartData}
+
       margin={{
         top: 5,
         right: 0,
@@ -86,7 +96,9 @@ export function IterativeTotalLineChartCanOpen({ chartData ,players}: { chartDat
       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
       {/*<XAxis dataKey="gameNumber" stroke="var(--color-text-3)" />*/}
       <YAxis width="auto" stroke="var(--color-text-3)" />
-      <Legend />
+      <Legend
+  
+/>
       {/* For each player, we create a line with a different color. The dataKey is the player id, and the name is the player name. The colors are defined in the CSS variables --color-chart-1, --color-chart-2, etc. */
       players.map((player, index) => (
         <Line
@@ -95,9 +107,13 @@ export function IterativeTotalLineChartCanOpen({ chartData ,players}: { chartDat
         dataKey={player.Name}
         stroke={getColorFromId(player.id,players)}
         dot={{
-          fill: 'var(--color-surface-base)'
+          fill: getColorFromId(player.id,players),
+          //opacity : activeIndex === index ? 1 : 0.5,
         }}
-        activeDot={{ r: 8, stroke: 'var(--color-surface-base)' }}
+         // onMouseEnter={() => setActiveIndex(index)}
+        //onMouseLeave={handleMouseLeave}
+        //strokeOpacity={activeIndex === index ? 1 : 0.5}
+        //activeDot={{ r: 8, stroke: getColorFromId(player.id,players) }}
         
       />
       ))}

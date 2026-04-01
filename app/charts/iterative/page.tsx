@@ -9,7 +9,7 @@ export default async function Page() {
 
 const supabase = createClient();
   const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
-  const { data: players }  = await supabase.from("Players").select("*");
+  const { data: players }  = await supabase.from("Players").select("*").order("Name", { ascending: true });
   if (!games || !players) {
     return <div>Failed to load data</div>
   }
