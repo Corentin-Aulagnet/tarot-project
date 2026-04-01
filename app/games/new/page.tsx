@@ -109,8 +109,6 @@ export default function NewGamePage() {
         };
         
         return (<main className="p-6">
-            <Example />
-            
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6 bg-white rounded shadow w-auto">
             <h1 className="text-xl font-bold">New Game</h1>
             

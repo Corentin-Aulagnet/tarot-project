@@ -27,7 +27,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 };
 
     return(<main className="p-6">
-        <Example />
       <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Create New Player</h1>
       <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="flex flex-col">

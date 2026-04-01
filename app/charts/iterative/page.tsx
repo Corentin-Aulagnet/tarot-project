@@ -14,7 +14,6 @@ const supabase = createClient();
     return <div>Failed to load data</div>
   }
   return (<main className="p-6">
-    <Example/>
     <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
     <IterativeTotalLineChart chartData={aggregateIterativeScores(games, players)} players={players} />
   </main>);

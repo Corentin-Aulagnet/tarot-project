@@ -38,7 +38,7 @@ export default async function HomePage() {
   const totals = aggregateTotalScores(games, players)
   const chartData = aggregateIterativeScores(games, players)    
   return (<main className="p-6">
-    <Example/>
+    
     
     <IterativeTotalLineChartCanOpen chartData={chartData} players={players}/>
     

@@ -1,6 +1,7 @@
 'use client'
 import { Games,Players } from "../../utils/supabase/supabase";
 import { getColorFromId } from "../IterativeTotalLineChart";
+import Link from "next/link";
 export type GameTableProps={
   games:Games[],
   players:Players[],
@@ -37,7 +38,9 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
           {games.map((game) => (
             <tr key={game.id} className="even:bg-gray-50">
               <td className={`border px-4 py-2 bg-white `}>
-                {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
+                <Link href={`/games/${game.id}`}>
+                  {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
+                </Link>
               </td>
 
               {players.map(player => (
