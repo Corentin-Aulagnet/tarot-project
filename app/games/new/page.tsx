@@ -82,7 +82,7 @@ export default function NewGamePage() {
         }
         const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            const res = await fetch("/api/submit", {
+            const res = await fetch("/api/insert", {
                 method: "POST",
                 body: JSON.stringify({call_id: form.call_id,
                      contract: form.contract,
