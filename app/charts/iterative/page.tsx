@@ -5,6 +5,7 @@ import Example from "@/components/NavBar";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
 import { createClient } from "@/utils/supabase/client";
 import { cookies } from "next/headers";
+export const dynamic = "force-dynamic";
 export default async function Page() {
 
 const supabase = createClient();
