@@ -52,7 +52,7 @@ export type Database = {
           misere_player_id: string | null
           misere_type: Database["public"]["Enums"]["Misere"] | null
           n_bouts: number
-          petit_au_bout_lost: boolean | null
+          petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id: string | null
           players_uid: string[]
           poignee_player_id: string | null
@@ -70,7 +70,7 @@ export type Database = {
           misere_player_id?: string | null
           misere_type?: Database["public"]["Enums"]["Misere"] | null
           n_bouts: number
-          petit_au_bout_lost?: boolean | null
+          petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
           players_uid: string[]
           poignee_player_id?: string | null
@@ -88,7 +88,7 @@ export type Database = {
           misere_player_id?: string | null
           misere_type?: Database["public"]["Enums"]["Misere"] | null
           n_bouts?: number
-          petit_au_bout_lost?: boolean | null
+          petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
           players_uid?: string[]
           poignee_player_id?: string | null
@@ -170,6 +170,7 @@ export type Database = {
       Chelem: "AnnoucedFailed" | "AnnoucedSucceeded" | "UnannoucedSucceeded"
       Contract: "Petite" | "Garde" | "Garde-Sans" | "Garde-Contre"
       Misere: "Tête" | "Atout"
+      Petit_au_bout: "Lost" | "Won"
       Poignee: "Simple" | "Double" | "Triple"
     }
     CompositeTypes: {
@@ -304,6 +305,7 @@ export const Constants = {
       Chelem: ["AnnoucedFailed", "AnnoucedSucceeded", "UnannoucedSucceeded"],
       Contract: ["Petite", "Garde", "Garde-Sans", "Garde-Contre"],
       Misere: ["Tête", "Atout"],
+      Petit_au_bout: ["Lost", "Won"],
       Poignee: ["Simple", "Double", "Triple"],
     },
   },

@@ -29,7 +29,7 @@ export default function NewGamePage() {
         poignee_type: null as string | null,
         poignee_player_id: null as string | null,
         petit_au_bout_player_id: null as string | null,
-        petit_au_bout_lost: null as boolean | null,
+        petit_au_bout: null as string | null,
         misere_type: null as string | null,
         misere_player_id: null as string | null,
     });
@@ -94,7 +94,7 @@ export default function NewGamePage() {
                           misere_type:form.misere_type,
                           misere_player_id:form.misere_player_id,
                           petit_au_bout_player_id: form.petit_au_bout_player_id,
-                          petit_au_bout_lost:form.petit_au_bout_lost,
+                          petit_au_bout:form.petit_au_bout,
                            points_att: pointsAtt,
                             n_bouts: nBouts,
                              players_uid: players_uid.map(p => p.id)}),
@@ -226,10 +226,10 @@ export default function NewGamePage() {
                     </option>
                 ))}
                 </select>
-                <select name="petit_au_bout_lost" onChange={handleChange}>
+                <select name="petit_au_bout" onChange={handleChange}>
                 <option defaultValue="">Outcome</option>
-                <option value="true">Lost</option>
-                <option value="false">Won</option>
+                <option value="Lost">Lost</option>
+                <option value="Won">Won</option>
                 </select>
                 </div>
 

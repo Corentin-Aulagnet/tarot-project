@@ -63,8 +63,8 @@ function getPointsForGame(game:Games, players:Players[]) {
   const prime_petit_au_bout = game.petit_au_bout_player_id ? 10*mult: 0;
   // If the attack gets the petit au bout and wins it, or if the defence gets the petit au bout and lose it, count positively for attack
   const petit_au_bout_by_attack = attack_team.includes(game.petit_au_bout_player_id || "");
-  const prime_petit_au_bout_att = (petit_au_bout_by_attack && !game.petit_au_bout_lost) ||
-  (!petit_au_bout_by_attack && game.petit_au_bout_lost) ? prime_petit_au_bout : -prime_petit_au_bout;
+  const prime_petit_au_bout_att = (petit_au_bout_by_attack && game.petit_au_bout == "Won") ||
+  (!petit_au_bout_by_attack && game.petit_au_bout == "Lost") ? prime_petit_au_bout : -prime_petit_au_bout;
   const prime_petit_au_bout_def = -prime_petit_au_bout_att;
   
   const prime_chelem = game.chelem === "AnnoucedSucceeded" ? 400 : game.chelem === "UnannoucedSucceeded" ? 200 : game.chelem === "AnnoucedFailed" ? -200 : 0;

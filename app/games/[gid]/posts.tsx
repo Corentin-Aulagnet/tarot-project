@@ -29,7 +29,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
           poignee_type: initialGame.poignee_type || null,
           poignee_player_id: initialGame.poignee_player_id || null,
           petit_au_bout_player_id: initialGame.petit_au_bout_player_id || null,
-          petit_au_bout_lost: initialGame.petit_au_bout_lost || null,
+          petit_au_bout: initialGame.petit_au_bout || null,
           misere_type: initialGame.misere_type || null,
           misere_player_id: initialGame.misere_player_id || null,
       });
@@ -107,14 +107,14 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                     created_at: initialGame.created_at,
                        contract: form.contract,
                         taker_id: form.taker_id,
-                         chelem: form.chelem,
-                          chelem_player_id: form.chelem_player_id,
-                           poignee_type: form.poignee_type,
-                            poignee_player_id: form.poignee_player_id,
-                            misere_type:form.misere_type,
-                            misere_player_id:form.misere_player_id,
-                            petit_au_bout_player_id: form.petit_au_bout_player_id,
-                            petit_au_bout_lost:form.petit_au_bout_lost,
+                         chelem: form.chelem || null,
+                          chelem_player_id: form.chelem_player_id || null,
+                           poignee_type: form.poignee_type || null,
+                            poignee_player_id: form.poignee_player_id || null,
+                            misere_type:form.misere_type  || null,
+                            misere_player_id:form.misere_player_id  || null,
+                            petit_au_bout_player_id: form.petit_au_bout_player_id  || null,
+                            petit_au_bout:form.petit_au_bout || null,
                              points_att: pointsAtt,
                               n_bouts: nBouts,
                                players_uid: players_uid.map(p => p.id)}),
@@ -204,14 +204,16 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Misere</h1>
                 <select name="misere_type" value={form.misere_type || ""}  onChange={handleChange}>
-                <option defaultValue="">None</option>
+                <option defaultValue="" value =''>None</option>
                 {Constants.public.Enums.Misere.map((p) => (
-                    <option key={p}>{p}</option>
+                    <option key={p} value={p}>
+                    {p}
+                        </option>
                     
                 ))}
                 </select>
                 <select name="misere_player_id" value={form.misere_player_id || ""} onChange={handleChange}>
-                <option defaultValue="">Player</option>
+                <option defaultValue="" value =''>Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
@@ -223,13 +225,13 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Poignee</h1>
                 <select name="poignee_type" value={form.poignee_type || ""} onChange={handleChange}>
-                <option defaultValue="">None</option>
+                <option defaultValue="" value =''>None</option>
                 {Constants.public.Enums.Poignee.map((p) => (
                     <option key={p}>{p}</option>
                 ))}
                 </select>
                 <select name="poignee_player_id" value={form.poignee_player_id || ""} onChange={handleChange}>
-                <option defaultValue="">Player</option>
+                <option defaultValue="" value =''>Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
@@ -241,17 +243,17 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Petit au bout</h1>
                 <select name="petit_au_bout_player_id" value={form.petit_au_bout_player_id || ""} onChange={handleChange}>
-                <option defaultValue="">Player</option>
+                <option defaultValue="" value =''>Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
                 ))}
                 </select>
-                <select name="petit_au_bout_lost" value={form.petit_au_bout_lost || ""} onChange={handleChange}>
-                <option defaultValue="">Outcome</option>
-                <option value="true">Lost</option>
-                <option value="false">Won</option>
+                <select name="petit_au_bout"  value={String(form.petit_au_bout) ?? ""} onChange={handleChange}>
+                <option defaultValue="" value ="">Outcome</option>
+                <option value="Lost">Lost</option>
+                <option value="Won">Won</option>
                 </select>
                 </div>
 
