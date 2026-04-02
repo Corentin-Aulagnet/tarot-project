@@ -256,7 +256,8 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <option value="Won">Won</option>
                 </select>
                 </div>
-
+                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+                <h1 className="font-medium">Select Chelem</h1>
                 <select name="chelem" value={form.chelem || ""} onChange={handleChange}>
                 <option value="">Chelem</option>
                 {Constants.public.Enums.Chelem.map((c) => {let s=""
@@ -274,9 +275,10 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                     return (<option key={c} value={c}>{s}</option>)
                 })}
                 </select>
+                </div>
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
-                <button type="submit" className="bg-gray-300 text-blue-500 font-bold p-2 cursor-pointer" ><PencilIcon color='blue'></PencilIcon>Update</button> 
-                <button type="reset" className="bg-gray-300 text-red-500 font-bold p-2"><TrashIcon color='red'></TrashIcon>Delete</button></div>
+                <button type="submit" className="bg-gray-300 text-blue-500 font-bold p-2 border rounded border-gray-300 border-width:15px" ><PencilIcon color='blue'></PencilIcon>Update</button> 
+                <button type="reset" className=" text-red-500 font-bold p-2 border rounded border-gray-300 border-width:15px "><TrashIcon color='red'></TrashIcon>Delete</button></div>
                 </form></main>
 
 

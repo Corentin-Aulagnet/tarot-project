@@ -232,7 +232,8 @@ export default function NewGamePage() {
                 <option value="Won">Won</option>
                 </select>
                 </div>
-
+<div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+                <h1 className="font-medium">Select Chelem</h1>
                 <select name="chelem" onChange={handleChange}>
                 <option value="">Chelem</option>
                 {Constants.public.Enums.Chelem.map((c) => {let s=""
@@ -250,6 +251,7 @@ export default function NewGamePage() {
                     return (<option key={c} value={c}>{s}</option>)
                 })}
                 </select>
+                </div>
                 <button className="bg-black text-white p-2">Create</button>
                 </form></main>
             );
