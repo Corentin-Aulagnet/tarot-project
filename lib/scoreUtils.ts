@@ -50,10 +50,10 @@ function getPointsForGame(game:Games, players:Players[]) {
       mult = 2;
       break;
     case "Garde-Sans":
-      mult = 3;
+      mult = 4;
       break;
     case "Garde-Contre":
-      mult = 4;
+      mult = 6;
       break;
   }
   const contractDone = game.points_att >= pointsToMake;
