@@ -38,8 +38,8 @@ export default function Example() {
                     href={item.href}
                     aria-current={item.current ? 'page' : undefined}
                     className={classNames(
-                      currentRoute === item.href ? "text-white bg-gray-900" : "text-gray-300 hover:bg-white/5 hover:text-white"
-    ,                   "rounded-md px-3 py-2 text-sm font-medium")}
+                      currentRoute === item.href ? "text-white bg-gray-900 font-bold" : "text-gray-300 hover:bg-white/5 hover:text-white"
+    ,                   " rounded-md px-3 py-2 text-sm font-medium")}
                   >
                     {item.name}
                   </Link>
