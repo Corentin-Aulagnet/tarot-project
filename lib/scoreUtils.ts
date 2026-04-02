@@ -67,7 +67,7 @@ function getPointsForGame(game:Games, players:Players[]) {
   (!petit_au_bout_by_attack && game.petit_au_bout_lost) ? prime_petit_au_bout : -prime_petit_au_bout;
   const prime_petit_au_bout_def = -prime_petit_au_bout_att;
   
-  const prime_chelem = game.chelem === "AnnoucedSucceeded" ? 200 : game.chelem === "UnannoucedSucceeded" ? 400 : game.chelem === "AnnoucedFailed" ? -200 : 0;
+  const prime_chelem = game.chelem === "AnnoucedSucceeded" ? 400 : game.chelem === "UnannoucedSucceeded" ? 200 : game.chelem === "AnnoucedFailed" ? -200 : 0;
   let poigneeValue = 0;
     if (game.poignee_type === "Simple") {
       poigneeValue = 20;
@@ -87,18 +87,27 @@ function getPointsForGame(game:Games, players:Players[]) {
   const prime_poignee_def = -prime_poignee_att;
   const pointsAtt = contractDone ? points : -points;
   const pointsDef = -pointsAtt;
+
   game.players_uid.forEach(p => {
     if (p === game.taker_id) {
-      result[p] = (pointsAtt+prime_petit_au_bout_att+prime_poignee_att) * 2 + (p === game.chelem_player_id ? prime_chelem : 0)
+      result[p] = (pointsAtt+prime_petit_au_bout_att+prime_poignee_att) * 2 ;
+      if(game.call_id === game.taker_id){result[p] *=2}
     } else if (p === game.call_id) {
-      result[p] = pointsAtt + prime_petit_au_bout_att + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_att
+      result[p] = pointsAtt + prime_petit_au_bout_att  + prime_poignee_att
     }else{
-      result[p] = pointsDef +prime_petit_au_bout_def + (p === game.chelem_player_id ? prime_chelem : 0) + prime_poignee_def
+      result[p] = pointsDef +prime_petit_au_bout_def  + prime_poignee_def
     }
     if(game.misere_player_id === p){
       result[p] += misereValue*4;
     }else{
       result[p] -= misereValue;
+    }
+    if(game.chelem !== null){
+      if(p === game.chelem_player_id){
+        result[p] += prime_chelem * (p === game.taker_id ? 2 : 1);
+      }else{
+        result[p] -= prime_chelem;
+      }
     }
   })
   return result;
@@ -144,7 +153,7 @@ export function aggregateIterativeScores(games:Games[], players:Players[]) {
   });
   const sortedGames = [...games].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   let previousGameId: Games['id'] | null = null;
-  const yannId = players.find(p => p.Name === "Yann")?.id || "";
+
   sortedGames.forEach(g => {
     const gameResult = games.find(gr => gr.id === g.id);
     if (!gameResult) return;
