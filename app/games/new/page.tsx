@@ -252,7 +252,7 @@ export default function NewGamePage() {
                 })}
                 </select>
                 </div>
-                <button className="bg-black text-white p-2">Create</button>
+                <button className="bg-gray-800 text-white p-2 font-bold">Create</button>
                 </form></main>
             );
         }
