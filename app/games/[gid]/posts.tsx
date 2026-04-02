@@ -203,13 +203,14 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Misere</h1>
-                <select name="misere_type" onChange={handleChange}>
+                <select name="misere_type" value={form.misere_type || ""}  onChange={handleChange}>
                 <option defaultValue="">None</option>
                 {Constants.public.Enums.Misere.map((p) => (
                     <option key={p}>{p}</option>
+                    
                 ))}
                 </select>
-                <select name="misere_player_id" onChange={handleChange}>
+                <select name="misere_player_id" value={form.misere_player_id || ""} onChange={handleChange}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -221,13 +222,13 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Poignee</h1>
-                <select name="poignee_type" onChange={handleChange}>
+                <select name="poignee_type" value={form.poignee_type || ""} onChange={handleChange}>
                 <option defaultValue="">None</option>
                 {Constants.public.Enums.Poignee.map((p) => (
                     <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="poignee_player_id" onChange={handleChange}>
+                <select name="poignee_player_id" value={form.poignee_player_id || ""} onChange={handleChange}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -239,7 +240,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
 
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Petit au bout</h1>
-                <select name="petit_au_bout_player_id" onChange={handleChange}>
+                <select name="petit_au_bout_player_id" value={form.petit_au_bout_player_id || ""} onChange={handleChange}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -247,14 +248,14 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                     </option>
                 ))}
                 </select>
-                <select name="petit_au_bout_lost" onChange={handleChange}>
+                <select name="petit_au_bout_lost" value={form.petit_au_bout_lost || ""} onChange={handleChange}>
                 <option defaultValue="">Outcome</option>
                 <option value="true">Lost</option>
                 <option value="false">Won</option>
                 </select>
                 </div>
 
-                <select name="chelem" onChange={handleChange}>
+                <select name="chelem" value={form.chelem || ""} onChange={handleChange}>
                 <option value="">Chelem</option>
                 {Constants.public.Enums.Chelem.map((c) => {let s=""
                     switch(c){
