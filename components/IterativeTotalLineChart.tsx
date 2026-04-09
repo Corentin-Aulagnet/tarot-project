@@ -26,14 +26,10 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-\"use client\";\nimport { Players } from '@/utils/supabase/supabase';
-import { on } from 'events';
-import { useEffect, useMemo, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam } from 'recharts';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase/client';
-import { Games } from '../utils/supabase/supabase';
-import { aggregateIterativeScores } from '@/lib/scoreUtils';
+"use client";
+import { Players } from '@/utils/supabase/supabase';
+import { useMemo, useState } from 'react';
+import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam } from 'recharts';
 
 /**
  * getColorFromId: Maps player ID to consistent HSL color for the chart.
