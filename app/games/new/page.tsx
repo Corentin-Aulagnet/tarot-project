@@ -1,3 +1,8 @@
+/**
+ * New Game Form Page (app/games/new/page.tsx)
+ * Form for creating a new Tarot game record.
+ */
+
 "use client";
 import "../../globals.css";
 import Link from "next/link";

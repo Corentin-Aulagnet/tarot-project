@@ -1,3 +1,9 @@
+/**
+ * Root Layout Component (app/layout.tsx)
+ * The top-level layout wrapping all pages with navigation header and global styles.
+ * Includes font configuration and metadata for the application.
+ */
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";

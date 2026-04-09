@@ -1,5 +1,32 @@
-"use client";
-import { Players } from '@/utils/supabase/supabase';
+/**
+ * IterativeTotalLineChart Component
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * Renders an interactive line chart showing each player's cumulative score
+ * progression across all Tarot games (in chronological order).
+ * 
+ * Used on:
+ * - Home page (app/page.tsx): Shows chart preview
+ * - Full-page view (/charts/iterative/page.tsx): Shows expanded chart
+ * 
+ * WHAT IT DISPLAYS:
+ * ──────────────────
+ * X-axis: Game number (1, 2, 3, ...) - chronological sequence
+ * Y-axis: Cumulative score for each player (sums all games up to that point)
+ * Lines: One line per player, color-coded consistently across visit
+ * 
+ * FEATURES:
+ * ─────────
+ * - Interactive tooltips: hover over points to see exact scores
+ * - Legend: Shows player names with color indicators
+ * - Handles missing players: If player didn't participate in a game,
+ *   line shows null (gap) at that point
+ * - Responsive sizing: Maintains aspect ratio, adapts to container
+ * 
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+\"use client\";\nimport { Players } from '@/utils/supabase/supabase';
 import { on } from 'events';
 import { useEffect, useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam } from 'recharts';
@@ -8,6 +35,16 @@ import { supabase } from '@/utils/supabase/client';
 import { Games } from '../utils/supabase/supabase';
 import { aggregateIterativeScores } from '@/lib/scoreUtils';
 
+/**
+ * getColorFromId: Maps player ID to consistent HSL color for the chart.
+ * 
+ * Each player gets a unique hue; saturation and lightness fixed for consistency.
+ * Color is stable throughout the session and across all chart instances.
+ * 
+ * @param id - Player UUID
+ * @param players - Array of all players (determines color pool size)
+ * @returns HSL color string, e.g., \"hsl(90, 65%, 55%)\"
+ */
 export function getColorFromId(id: string,players: Players[]) {
   const colors = generateColors(players.length);
 
@@ -17,6 +54,15 @@ export function getColorFromId(id: string,players: Players[]) {
     return colorMap[id] || 'hsl(0, 0%, 50%)'; // default to gray if id not found
 }
 
+/**
+ * generateColors: Creates an array of N visually distinct HSL colors.
+ * 
+ * Distributes hues evenly across the color wheel (0-360 degrees).
+ * Saturation=65%, Lightness=55% for balanced, readable colors.
+ * 
+ * @param count - Number of colors to generate
+ * @returns Array of HSL color strings
+ */
 export function generateColors(count: number) {
   return Array.from({ length: count }, (_, i) => {
     const hue = (i * 360) / count;
@@ -24,6 +70,10 @@ export function generateColors(count: number) {
   });
 }
 export  function IterativeTotalLineChart({ chartData ,players}: { chartData: Record<string, number | null>[] , players: Players[]}) {  
+  /**
+   * active state tracks which player lines are visible (for interactive toggles if added).
+   * Currently all players shown by default.
+   */
   const [active, setActive] = useState<boolean[]>(players.map(() => true));
 
   return (<div className="flex justify-center"  >

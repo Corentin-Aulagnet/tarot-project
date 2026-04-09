@@ -1,3 +1,29 @@
+/**
+ * Server Supabase Client (utils/supabase/server.ts)
+ * 
+ * Instantiates Supabase client for SERVER-SIDE code only.
+ * Runs on Next.js server; manages user session via cookies.
+ * 
+ * USAGE:
+ * - Server Components: Direct import, pass cookies
+ * - API routes: (/api/insert, /update, /delete) use this client
+ * 
+ * WHY?
+ * - Manages authentication via cookies
+ * - Has full database access (subject to RLS policies)
+ * - Safer than client version (no secrets exposed to browser)
+ * 
+ * EXAMPLE:
+ * import { createClient } from '@/utils/supabase/server';
+ * import { cookies } from 'next/headers';
+ * 
+ * export async function getGames() {
+ *   const cookieStore = await cookies();
+ *   const supabase = createClient(cookieStore);
+ *   return await supabase.from('Games').select('*');
+ * }
+ */
+
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Database } from "./supabase";

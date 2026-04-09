@@ -1,13 +1,71 @@
+/**
+ * GameTable Component
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * Renders a sortable, sticky-header table showing all Tarot games and per-player scores.
+ * Located on home page (app/page.tsx).
+ * 
+ * FEATURES:
+ * ─────────
+ * - Sticky header row (stays visible when scrolling)
+ * - Sticky game column (game timestamps/links stay visible when scrolling right)
+ * - Color-coded player columns (each player has consistent hue across component)
+ * - Totals row at top showing cumulative scores for each player
+ * - Clickable game links navigate to /games/[id] for detail view
+ * - Responsive: truncates on mobile, full table on desktop
+ * 
+ * PROPS:
+ * ──────
+ * {GameTableProps}
+ *   - games: Games[] → All game records from database (sorted by created_at)
+ *   - players: Players[] → All registered players
+ *   - table: Record<GameID, Record<PlayerID, Score>> → Per-game per-player scores
+ *     Output from scoreUtils.buildGamePlayerTotals()
+ *   - totals: Record<PlayerID, TotalScore> → Cumulative scores across all games
+ *     Output from scoreUtils.aggregateTotalScores()
+ * 
+ * STYLING:
+ * ────────
+ * - Uses Tailwind CSS with custom z-index stacking for sticky elements
+ * - Players with positive scores: green text
+ * - Players with negative scores: red text
+ * - Alternating row backgrounds (odd/even) for readability
+ * - Colors from getColorFromId() generator function
+ * 
+ * INTERACTION:
+ * ─────────────
+ * - Click game timestamp → navigate to /games/[gid] for detail/edit
+ * - No sorting in this version (games shown in database order; typically by date desc)
+ * 
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
 'use client'
 import { Games,Players } from "../../utils/supabase/supabase";
 import { getColorFromId } from "../IterativeTotalLineChart";
 import Link from "next/link";
+
+/**
+ * Props for the GamesTable component.
+ * 
+ * @param games - Array of all game records; displayed as table rows
+ * @param players - Array of all players; determines table columns
+ * @param table - Nested record mapping gameId → playerId → score (per-game scores)
+ * @param totals - Record mapping playerId → cumulative score (totals row)
+ */
 export type GameTableProps={
   games:Games[],
   players:Players[],
   table: Record<Games['id'], Record<Players['id'],number>>
   totals: Record<Players['id'],number>
 }
+
+/**
+ * GamesTable: Displays all Tarot games and scores in a sticky-header table.
+ * 
+ * @param props GameTableProps
+ * @returns Rendered table with game rows and player score columns
+ */
 export function GamesTable({ games, players, table,totals }:GameTableProps) {
   return (
     <div className="max-h-96 overflow-auto border border-gray-300" >

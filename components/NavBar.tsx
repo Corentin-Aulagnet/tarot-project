@@ -1,3 +1,20 @@
+/**
+ * NavBar Component (components/NavBar.tsx)
+ * Navigation header for the entire application.
+ * 
+ * Features:
+ * - Desktop links: Home | New Game | New Player | Charts
+ * - Mobile menu: Hamburger button (via Headless UI Disclosure)
+ * - Current route highlighting: Active link shows bold white text
+ * - Uses Heroicons for menu icons (Bars3Icon for open, XMarkIcon for close)
+ * 
+ * Routes:
+ * - Home (/) → Dashboard with leaderboard and charts
+ * - New Game (/games/new) → Form to create game
+ * - New Player (/players/new) → Form to add player
+ * - Charts (/charts/iterative) → Full-page score progression chart
+ */
+
 "use client";
 import Link from "next/link";
 import "@/app/globals.css";
