@@ -130,7 +130,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
   return (
 
 <main className="p-6">
-            <form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-4 p-6 bg-white rounded shadow w-auto">
+            <form onSubmit={handleSubmit} onReset={handleReset} className="flex flex-col gap-4 p-6 rounded shadow w-auto">
             <h1 className="text-xl font-bold">Update Game from {new Date(game.created_at).toLocaleString('en-GB',{year:'numeric',month:'long',day:'numeric',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,hour:'2-digit',minute:'2-digit'})}</h1>
             
             <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
