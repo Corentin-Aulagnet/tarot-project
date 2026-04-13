@@ -287,7 +287,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_games_by_player: {
+        Args: { player_id: string }
+        Returns: {
+          call_id: string
+          chelem: Database["public"]["Enums"]["Chelem"] | null
+          chelem_player_id: string | null
+          contract: Database["public"]["Enums"]["Contract"]
+          created_at: string
+          id: string
+          misere_player_id: string | null
+          misere_type: Database["public"]["Enums"]["Misere"] | null
+          n_bouts: number
+          petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
+          petit_au_bout_player_id: string | null
+          players_uid: string[]
+          poignee_player_id: string | null
+          poignee_type: Database["public"]["Enums"]["Poignee"] | null
+          points_att: number
+          taker_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "Games"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       Chelem: "AnnoucedFailed" | "AnnoucedSucceeded" | "UnannoucedSucceeded"
