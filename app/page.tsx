@@ -7,6 +7,7 @@ import {IterativeTotalLineChartCanOpen} from "@/components/IterativeTotalLineCha
 import "./globals.css"
 
 
+
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
   const supabase = createClient();
@@ -31,7 +32,7 @@ export default async function HomePage() {
     
     
     <IterativeTotalLineChartCanOpen chartData={chartData} players={players}/>
-    
+
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} totals={totals}/>
     {/*<StickyTable/>*/}
