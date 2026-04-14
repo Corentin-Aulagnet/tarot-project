@@ -1,28 +1,17 @@
 "use client";
-
-import { useState } from "react";
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { useRouter } from "next/navigation";
-import { Constants,Games,Players } from "@/utils/supabase/supabase";
-import { supabase } from "@/utils/supabase/client";
-import { useEffect } from "react";
-import Link from "next/link";
+import { Constants,Games,getWinningTeam,Players } from "@/utils/supabase/supabase";
 import { IterativeTotalLineChart } from "@/components/IterativeTotalLineChart";
-import { aggregateIterativeScores } from "@/lib/scoreUtils";
+import { aggregateIterativeScores,buildGamePlayerTotals } from "@/lib/scoreUtils";
+
 export default function Posts({ player,games }:{ player: Players,games:Games[]|null }) {
+    const pointsPerGame = games? buildGamePlayerTotals(games, [player]):null;
     return (<div>
         <h1>{player.Name}</h1>
         <h2>Games</h2>
         <IterativeTotalLineChart chartData={aggregateIterativeScores(games || [], [player])} players={[player]} />
-        <ul>
-            {games?.map(game => (
-                <li key={game.id}>
-                    <Link href={`/games/${game.id}`}>
-                        {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
-                    </Link>
-                </li>
-            ))}
-        </ul>
+        <ul>Games played: {games?.length || 0}</ul>
+        <ul>Games won: {games?.filter(game => getWinningTeam(game).includes(player.id)).length || 0}</ul>
+        <ul>Average points per game: {games?.length ? (games.reduce((sum, game) => sum + (pointsPerGame?.[game.id]?.[player.id] || 0), 0) / games.length).toFixed(2) : '0.00'}</ul>
     </div>
     )
 }
