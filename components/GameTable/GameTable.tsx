@@ -95,7 +95,7 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
               ))}
             </tr>
           {games.map((game) => (
-            <tr key={game.id} className="bg-gray-50 ">
+            <tr key={game.id} >
               <td className={`border px-4 py-2 dark:bg-gray-700`}>
                 <Link className={"dark:bg-gray-700"}href={`/games/${game.id}`}>
                   {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
