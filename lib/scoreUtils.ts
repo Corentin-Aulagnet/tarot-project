@@ -102,8 +102,8 @@ export type GameResult={
  * 
  *   Petite          → mult = 1  (basic bid)
  *   Garde           → mult = 2  (takes same points as Petite, doubled)
- *   Garde-Sans      → mult = 4  (player hides their hand)
- *   Garde-Contre    → mult = 6  (maximum difficulty; highest reward/risk)
+ *   Garde-Sans      → mult = 4  (player hides the dog but keeps it)
+ *   Garde-Contre    → mult = 6  (player hides the dog, and the opposing team keep it)
  * 
  * STEP 3: Contract Success Check
  * ──────────────────────────────
@@ -322,7 +322,7 @@ function getPointsForGame(game:Games, players:Players[]) {
 /**
  * buildGamePlayerTotals(games, players)
  * 
- * Calculates per-player scores for EACH GAME in the database.
+ * Calculates per-player scores for each provided game.
  * Used to populate the game results table (rows = games, columns = players).
  * 
  * @param games - All games from database
