@@ -1,12 +1,8 @@
 
-import Link from "next/link";
+
 import { createClient } from "@/utils/supabase/client"
-import {buildGamePlayerTotals,aggregateTotalScores,aggregateIterativeScores} from "@/lib/scoreUtils"
-import {GamesTable} from "@/components/GameTable/GameTable"
-import {IterativeTotalLineChartCanOpen} from "@/components/IterativeTotalLineChart";
 import "./globals.css"
-
-
+import Post from "./post";
 
 export const dynamic = "force-dynamic";
 export default async function HomePage() {
@@ -21,27 +17,9 @@ export default async function HomePage() {
     .select("*")
     .order("Name", { ascending: true })
 
-  if (!games || !players) {
-    return <div>Failed to load data</div>
-  }
-
-  const table = buildGamePlayerTotals(games, players)
-  const totals = aggregateTotalScores(games, players)
-  const chartData = aggregateIterativeScores(games, players)    
+    
   return (<main className="p-6">
     
-    
-    <IterativeTotalLineChartCanOpen chartData={chartData} players={players}/>
-
-    <h1 className="font-extrabold">All Games</h1>
-    <GamesTable games={games} players={players} table={table} totals={totals}/>
-    {/*<StickyTable/>*/}
-     <div className="flex justify-center mt-6">
-    <Link  href="/games/new"
-   
-  className="bg-blue-500 text-white px-6 py-3 rounded text-lg hover:bg-blue-600 transition"
->
-  Start New Game
-</Link></div>
+    <Post games={games} players={players}/>
   </main>)
 }

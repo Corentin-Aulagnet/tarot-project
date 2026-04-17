@@ -1,10 +1,10 @@
 
 import "../../globals.css";
-import { IterativeTotalLineChart } from "@/components/IterativeTotalLineChart"
-import Example from "@/components/NavBar";
+import {LineChart} from "@/components/LineChart";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
 import { createClient } from "@/utils/supabase/client";
 import { cookies } from "next/headers";
+import Post from "./post";
 export const dynamic = "force-dynamic";
 export default async function Page() {
 
@@ -16,6 +16,6 @@ const supabase = createClient();
   }
   return (<main className="p-6">
     <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
-    <IterativeTotalLineChart chartData={aggregateIterativeScores(games, players)} players={players} />
+    <Post data={aggregateIterativeScores(games, players)} players={players} />
   </main>);
 }

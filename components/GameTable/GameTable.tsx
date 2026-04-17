@@ -73,8 +73,8 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
         <thead>
           <tr>
             <th className="sticky top-0 left-0 z-30 border px-4 py-2">Game</th>
-            {players.map(p => (<th key={p.id} className="sticky top-0 left-0 z-30 border px-4 py-2">
-              <Link  className={"sticky top-0 left-0 z-1 text-center align-text-top"} href={`/players/${p.id}`}>
+            {players.map(p => (<th key={p.id} className="sticky top-0 z-20 border px-4 py-2">
+              <Link  className={"text-center align-text-top"} href={`/players/${p.id}`}>
                   {p.Name}
                 </Link></th>
               

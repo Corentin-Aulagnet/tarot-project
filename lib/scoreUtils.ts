@@ -25,7 +25,6 @@
  */
 
 import {Games, Players} from '../utils/supabase/supabase';
-
 /** Contract types and their point multipliers. */
 export enum Contract{
     Petite,      // 1x multiplier (base bid)

@@ -16,9 +16,9 @@ export default async function Page({ params }: { params: { pid: string } }) {
   if (!player) {
     return <div>Player not found</div>;
   }
-const { data, error } = await supabase.rpc('get_games_by_player', {player_id: pid });
-if (error)console.error(error);
-const games: Games[] = data || [];
-return <Posts player={player} games={games} />;
+    const { data, error } = await supabase.rpc('get_games_by_player', {player_id: pid });
+    if (error)console.error(error);
+    const games: Games[] = data || [];
+    return <Posts player={player} games={games} />;
 }
           
