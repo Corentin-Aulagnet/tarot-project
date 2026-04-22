@@ -1,4 +1,6 @@
+"use client"
 import {Players} from '../utils/supabase/supabase';
+import { useEffect } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,6 +13,7 @@ import {
   ChartData,
 } from 'chart.js';
 import { Line } from "react-chartjs-2";
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 ChartJS.register(
   CategoryScale,
@@ -19,7 +22,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 );
 /**
  * aggregateScoresToChartData(aggregatedScores, players, colors)
@@ -48,7 +52,15 @@ export function aggregateScoresToChartData(
   };
 }
 
-export function LineChart({ data, players }: { data: Record<string, number | null>[], players: Players[] }) {
+export default function LineChart({ data, players }: { data: Record<string, number | null>[], players: Players[] }) {
     const chartData = aggregateScoresToChartData(data, players);
-    return <Line data={chartData} />
+    const visiblePoints = 10;
+    return <Line data={chartData} options={{responsive: true,
+    scales: {
+      x: {
+        min: chartData["labels"].length - visiblePoints,
+        max: chartData["labels"].length - 1
+      }
+    }, plugins: { zoom: { pan: { enabled: true ,mode:'x'}, zoom: { mode:'x' ,wheel:{enabled:true}} } } 
+  }}/>
 }

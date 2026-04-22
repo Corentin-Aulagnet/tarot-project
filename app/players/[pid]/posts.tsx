@@ -1,9 +1,10 @@
 "use client"
 import { Constants,Games,getWinningTeam,Players } from "@/utils/supabase/supabase";
-import { IterativeTotalLineChart } from "@/components/IterativeTotalLineChart";
 import { aggregateIterativeScores,buildGamePlayerTotals } from "@/lib/scoreUtils";
-
-import { LineChart } from "@/components/LineChart";
+import dynamic from "next/dynamic";
+const LineChart = dynamic(() => import("@/components/LineChart"), {
+  ssr: false, // Disable server-side rendering
+});
 
 
 export default function Posts({ player,games }:{ player: Players,games:Games[]|null }) {

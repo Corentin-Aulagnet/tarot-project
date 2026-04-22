@@ -68,7 +68,7 @@ export type GameTableProps={
  */
 export function GamesTable({ games, players, table,totals }:GameTableProps) {
   return (
-    <div className="max-h-96 overflow-auto border border-gray-300 dark:text-white" >
+    <div className="max-h-72 overflow-auto border border-gray-300 dark:text-white" >
       <table className="min-w-full border-collapse dark:bg-gray-900">
         <thead>
           <tr>
