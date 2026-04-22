@@ -17,7 +17,7 @@ export default function Post({games, players}: { games: Games[] | null, players:
   const totals = aggregateTotalScores(games, players)
   const chartData = aggregateIterativeScores(games, players)  
     return (<div>
-    <div >
+    <div className= "not-landscape:h-100 landscape:h-70" >
     <LineChart data={chartData} players={players}/>
 </div>
     <h1 className="font-extrabold">All Games</h1>

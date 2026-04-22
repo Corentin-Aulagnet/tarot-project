@@ -52,15 +52,16 @@ export function aggregateScoresToChartData(
   };
 }
 
-export default function LineChart({ data, players }: { data: Record<string, number | null>[], players: Players[] }) {
+export default function LineChart({ data, players,zoomIndex=10}:{ data: Record<string, number | null>[], players: Players[],zoomIndex:number|null  }) {
     const chartData = aggregateScoresToChartData(data, players);
-    const visiblePoints = 10;
-    return <Line data={chartData} options={{responsive: true,
+    const visiblePoints:number | null = zoomIndex;
+    if ( chartData["labels"]){
+    return <Line  data={chartData} options={{responsive: true, maintainAspectRatio:false,
     scales: {
       x: {
-        min: chartData["labels"].length - visiblePoints,
+        min: chartData["labels"].length - (visiblePoints ?? chartData["labels"].length),
         max: chartData["labels"].length - 1
       }
     }, plugins: { zoom: { pan: { enabled: true ,mode:'x'}, zoom: { mode:'x' ,wheel:{enabled:true}} } } 
-  }}/>
+  }}/>}
 }
