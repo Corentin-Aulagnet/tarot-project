@@ -1,6 +1,5 @@
 
 import "../../globals.css";
-import {LineChart} from "@/components/LineChart";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
 import { createClient } from "@/utils/supabase/client";
 import { cookies } from "next/headers";
