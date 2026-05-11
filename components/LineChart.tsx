@@ -1,5 +1,5 @@
 "use client"
-import {Players} from '../utils/supabase/types';
+import {Games, Players} from '../utils/supabase/types';
 import { useEffect } from "react";
 import {
   Chart as ChartJS,
@@ -11,6 +11,7 @@ import {
   Tooltip,
   Legend,
   ChartData,
+  ChartDataset,
 } from 'chart.js';
 import { Line } from "react-chartjs-2";
 import zoomPlugin from 'chartjs-plugin-zoom';
@@ -25,6 +26,7 @@ ChartJS.register(
   Legend,
   zoomPlugin
 );
+
 /**
  * aggregateScoresToChartData(aggregatedScores, players, colors)
  * 
@@ -38,6 +40,7 @@ ChartJS.register(
 export function aggregateScoresToChartData(
   aggregatedScores: Record<string, number | null>[],
   players: Players[],
+  lastPlayers: Players[],
   colors?: Record<string, string>
 ): ChartData<'line'> {
   return {
@@ -48,12 +51,14 @@ export function aggregateScoresToChartData(
       borderColor: colors?.[player.id] || `hsl(${Math.random() * 360}, 65%, 55%)`,
       tension: 0.4,
       fill: false,
-    })),
+      hidden:lastPlayers.some((p) => p.id === player.id) ? false : true, // Hide lines for players not in lastPlayers
+    })
+  )
   };
 }
 
-export default function LineChart({ data, players,zoomIndex=10}:{ data: Record<string, number | null>[], players: Players[],zoomIndex:number|null  }) {
-    const chartData = aggregateScoresToChartData(data, players);
+export default function LineChart({ data, players,lastPlayers,zoomIndex=10}:{ data: Record<string, number | null>[], players: Players[],lastPlayers: Players[],zoomIndex:number|null  }) {
+    const chartData = aggregateScoresToChartData(data, players,lastPlayers);
     const visiblePoints:number | null = zoomIndex;
     if ( chartData["labels"]){
     return <Line  data={chartData} options={{responsive: true, maintainAspectRatio:false,

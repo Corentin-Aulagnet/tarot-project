@@ -4,10 +4,11 @@ import {GamesTable} from "@/components/GameTable/GameTable"
 import Link from "next/link";
 import { Games, Players } from "@/utils/supabase/types";
 import dynamic from 'next/dynamic';
-
+import { getLastPlayers } from "@/lib/gameUtils";
 const LineChart = dynamic(() => import("@/components/LineChart"), {
   ssr: false, // Disable server-side rendering
 });
+
 export default function Post({games, players}: { games: Games[] | null, players: Players[] | null }) {
     if (!games || !players) {
     return <div>Failed to load data</div>
@@ -15,10 +16,11 @@ export default function Post({games, players}: { games: Games[] | null, players:
 
   const table = buildGamePlayerTotals(games, players)
   const totals = aggregateTotalScores(games, players)
-  const chartData = aggregateIterativeScores(games, players)  
+  const chartData = aggregateIterativeScores(games, players)
+  const lastPlayers = getLastPlayers(games, players) || players;
     return (<div>
     <div className= "not-landscape:h-100 landscape:h-70" >
-    <LineChart data={chartData} players={players}  zoomIndex={10}/>
+    <LineChart data={chartData} players={players} lastPlayers={lastPlayers}  zoomIndex={10}/>
 </div>
     <h1 className="font-extrabold">All Games</h1>
     <GamesTable games={games} players={players} table={table} totals={totals}/>
