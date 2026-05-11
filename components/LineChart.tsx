@@ -1,6 +1,5 @@
 "use client"
-import {Games, Players} from '../utils/supabase/types';
-import { useEffect } from "react";
+import { Players} from '../utils/supabase/types';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +10,6 @@ import {
   Tooltip,
   Legend,
   ChartData,
-  ChartDataset,
 } from 'chart.js';
 import { Line } from "react-chartjs-2";
 import zoomPlugin from 'chartjs-plugin-zoom';
