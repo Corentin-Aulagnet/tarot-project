@@ -269,9 +269,10 @@ function getPointsForGame(game:Games, players:Players[]) {
   // STEP 8: Misère penalty (special rare situations)
   // ─────────────────────────────────────────────────────────
   let misereValue = 0;
-  if(game.misere_type === "Tête" || game.misere_type === "Atout"){
+  if(game.misere_type_arr && game.misere_type_arr.length > 0){
+  if(game.misere_type_arr[0] === "Tête" || game.misere_type_arr[0] === "Atout"){
     misereValue = 10;
-  }
+  }}
 
   // ─────────────────────────────────────────────────────────
   // STEP 9: Distribute bonuses to attack/defense
@@ -299,9 +300,9 @@ function getPointsForGame(game:Games, players:Players[]) {
       result[p] = pointsDef +prime_petit_au_bout_def  + prime_poignee_def
     }
     
-    // Apply misère penalty (if applicable to this player)
-    if(game.misere_player_id === p){
-      result[p] += misereValue*4;  // 4x penalty for the player who made the misère
+    // Apply misère bonus (if applicable to this player)
+    if(game.misere_player_id_arr?.includes(p)){
+      result[p] += misereValue*4;  // 4x bonus for the player who made the misère
     }else{
       result[p] -= misereValue;    // 1x each for other players
     }

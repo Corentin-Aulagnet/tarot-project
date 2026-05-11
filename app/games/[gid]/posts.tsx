@@ -19,10 +19,15 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
       const [nBouts, setNBouts] = useState(initialGame.n_bouts || 0);
       const isValid = nBouts >= 0 && nBouts <= 3;
       const pointsToMake = nBouts === 0 ? 56 : nBouts === 1 ? 51 : nBouts === 2 ? 41 : 36;
-      const [numberOfPoignee, setNumberOfPoignee] = useState(initialGame.poignee_player_id_arr ? initialGame.poignee_player_id_arr.length : 0);
 
+      const [numberOfPoignee, setNumberOfPoignee] = useState(initialGame.poignee_player_id_arr ? initialGame.poignee_player_id_arr.length : 0);
       const [poigneeIds,setPoigneeIds] = useState<string[]>(initialGame.poignee_player_id_arr  || []);
       const [poigneeTypes,setPoigneeTypes] = useState<string[]>(initialGame.poignee_type_arr  || []);
+
+        const [numberOfMisere, setNumberOfMisere] = useState(initialGame.misere_player_id_arr ? initialGame.misere_player_id_arr.length : 0);
+      const [misereIds,setMisereIds] = useState<string[]>(initialGame.misere_player_id_arr  || []);
+      const [misereTypes,setMisereTypes] = useState<string[]>(initialGame.misere_type_arr  || []);
+
       const [form, setForm] = useState({
           call_id: initialGame.call_id || "",
           contract: initialGame.contract || "Petite",
@@ -31,8 +36,6 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
           chelem_player_id: initialGame.chelem_player_id || null,
           petit_au_bout_player_id: initialGame.petit_au_bout_player_id || null,
           petit_au_bout: initialGame.petit_au_bout || null,
-          misere_type: initialGame.misere_type || null,
-          misere_player_id: initialGame.misere_player_id || null,
       });
      
           useEffect( ()=>{
@@ -60,6 +63,16 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 const newPoigneeIds = [...(poigneeIds || [])];
                 newPoigneeIds[index] = value;
                 setPoigneeIds(newPoigneeIds);
+            }
+            const handleChangeMisereType = (index: number, value: string) => {
+                const newMisereTypes = [...(misereTypes || [])];
+                newMisereTypes[index] = value;
+                setMisereTypes(newMisereTypes);
+            }
+            const handleChangeMiserePlayerId = (index: number, value: string) => {
+                const newMisereIds = [...(misereIds || [])];
+                newMisereIds[index] = value;
+                setMisereIds(newMisereIds);
             }
           const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               const { name, value } = e.target;
@@ -122,8 +135,8 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                           chelem_player_id: form.chelem_player_id || null,
                            poignee_type_arr: poigneeTypes || null,
                             poignee_player_id_arr: poigneeIds || null,
-                            misere_type:form.misere_type  || null,
-                            misere_player_id:form.misere_player_id  || null,
+                            misere_type_arr: misereTypes  || null,
+                            misere_player_id_arr: misereIds  || null,
                             petit_au_bout_player_id: form.petit_au_bout_player_id  || null,
                             petit_au_bout:form.petit_au_bout || null,
                              points_att: pointsAtt,
@@ -212,25 +225,30 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 </div></div>
                 </div></div>
                 
-                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+<div className="flex flex-row flex-wrap gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Misere</h1>
-                <select name="misere_type" value={form.misere_type || ""}  onChange={handleChange}>
-                <option defaultValue="" value =''>None</option>
-                {Enums.Misere.map((p) => (
-                    <option key={p} value={p}>
-                    {p}
-                        </option>
-                    
+{Array.from({ length: numberOfMisere }, (_, i) => (
+                    <div key={i} className="flex flex-row gap-2 border p-1 rounded border-gray-300 border-width:15px">
+                    <select name="misere_type" value={misereTypes?.[i] || ""} onChange={(e) => handleChangeMisereType(i, e.target.value)}>
+                    <option defaultValue="">None</option>
+                    {Enums.Misere.map((p) => (
+                        <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="misere_player_id" value={form.misere_player_id || ""} onChange={handleChange}>
-                <option defaultValue="" value =''>Player</option>
+                <select name="misere_player_id" value={misereIds?.[i] || ""} onChange={(e) => handleChangeMiserePlayerId(i, e.target.value)}>
+                <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
                 ))}
                 </select>
+                </div>
+))}
+<PlusCircleIcon className="blue size-6" onClick={() => {setMisereIds([...misereIds, ""]);setMisereTypes([...misereTypes, ""]); setNumberOfMisere(numberOfMisere + 1);}} />
+                {numberOfMisere > 0 && (
+                    <MinusCircleIcon className="size-6" onClick={() => {setMisereIds(misereIds.slice(0, -1));setMisereTypes(misereTypes.slice(0, -1));setNumberOfMisere(numberOfMisere - 1)}} />
+                )}
                 </div>
                 
                 <div className="flex flex-row flex-wrap gap-4 border p-2 rounded border-gray-300 border-width:15px">

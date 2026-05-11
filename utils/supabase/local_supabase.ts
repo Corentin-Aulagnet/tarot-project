@@ -43,7 +43,9 @@ export type Database = {
           created_at: string
           id: string
           misere_player_id: string | null
+          misere_player_id_arr: string[] | null
           misere_type: Database["public"]["Enums"]["Misere"] | null
+          misere_type_arr: Database["public"]["Enums"]["Misere"][] | null
           n_bouts: number
           petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id: string | null
@@ -61,7 +63,9 @@ export type Database = {
           created_at?: string
           id?: string
           misere_player_id?: string | null
+          misere_player_id_arr?: string[] | null
           misere_type?: Database["public"]["Enums"]["Misere"] | null
+          misere_type_arr?: Database["public"]["Enums"]["Misere"][] | null
           n_bouts: number
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
@@ -79,7 +83,9 @@ export type Database = {
           created_at?: string
           id?: string
           misere_player_id?: string | null
+          misere_player_id_arr?: string[] | null
           misere_type?: Database["public"]["Enums"]["Misere"] | null
+          misere_type_arr?: Database["public"]["Enums"]["Misere"][] | null
           n_bouts?: number
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
