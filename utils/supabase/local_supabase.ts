@@ -1,126 +1,3 @@
-/**
- * ============================================================================
- * SUPABASE AUTO-GENERATED SCHEMA TYPES (supabase.ts)
- * ============================================================================
- * 
- * IMPORTANT: This file is auto-generated from the Supabase database schema.
- * DO NOT edit manually. Regenerate with:
- *   supabase gen types typescript --local
- * 
- * This file exports TypeScript types for:
- * - Database row types (Games, Players)
- * - Insert/Update types for mutations
- * - Enums for type-safe field values
- * 
- * ============================================================================
- * 
- * KEY TABLES
- * ──────────
- * 
- * **Games Table**
- * ───────────────
- * Stores every Tarot game session with all scoring context.
- * 
- * Fields:
- *   - id (UUID, PK)
- *   - created_at (timestamp): When game was recorded
- *   - players_uid (UUID[]): All players who participated in this game
- *   - taker_id (FK→Players): Player attacking/bidding
- *   - call_id (FK→Players): Second attacker (optional; can equal taker_id for 4x multiplier)
- *   - contract (enum): Bid level (Petite/Garde/Garde-Sans/Garde-Contre)
- *   - n_bouts (int, 0-3): Number of special cards in attack tricks (Fool, XXI, Jack of Trumps)
- *   - points_att (int, 0-91): Total pip points scored by attack team
- *   - petit_au_bout (enum): Did attack/defense win the Fool in final trick? ("Won" or "Lost")
- *   - petit_au_bout_player_id (FK→Players): Who had the Fool? (taker, caller, or defender)
- *   - poignee_type (enum): Hand bonus (Simple/Double/Triple) for holding trump cards
- *   - poignee_player_id (FK→Players): Which player claimed the hand bonus?
- *   - chelem (enum): Grand slam result (AnnoucedFailed/AnnoucedSucceeded/UnannoucedSucceeded)
- *   - chelem_player_id (FK→Players): Which player attempted the grand slam?
- *   - misere_type (enum): Special penalty situation ("Tête" or "Atout")
- *   - misere_player_id (FK→Players): Player incurring the misère penalty
- * 
- * Foreign Key Relationships:
- *   taker_id → Players.id
- *   call_id → Players.id
- *   petit_au_bout_player_id → Players.id
- *   poignee_player_id → Players.id
- *   chelem_player_id → Players.id
- *   misere_player_id → Players.id
- * 
- * NOTE: players_uid is an ARRAY; other *_id fields are single UUIDs.
- *       Use supabase.from('Games').insert(row) to insert; types enforce required/optional fields.
- * 
- * **Players Table**
- * ────────────────
- * Registry of all players who have played games.
- * 
- * Fields:
- *   - id (UUID, PK): Auto-generated player ID
- *   - created_at (timestamp): When player joined
- *   - Name (string): Player's display name
- * 
- * ============================================================================
- * 
- * ENUMS (Type-Safe Field Values)
- * ───────────────────────────────
- * 
- * **Contract** - Bid level and scoring multiplier
- *   - "Petite" → 1x multiplier
- *   - "Garde" → 2x multiplier
- *   - "Garde-Sans" → 4x multiplier (hand alone)
- *   - "Garde-Contre" → 6x multiplier (maximum)
- * 
- * **Petit_au_bout** - Did attack/defense win the Fool in final trick?
- *   - "Won" → Attack/declarer team won it (bonus to them)
- *   - "Lost" → Defense won it (penalty to attack)
- * 
- * **Poignee** - Hand bonus (holding many trump cards)
- *   - "Simple" → 8-9 trumps: +20 points
- *   - "Double" → 10-12 trumps: +30 points
- *   - "Triple" → 13+ trumps: +40 points
- * 
- * **Chelem** - Grand slam (winning all tricks)
- *   - "AnnoucedFailed" → Declared all tricks but failed: −200 points
- *   - "AnnoucedSucceeded" → Declared and succeeded: +400 points
- *   - "UnannoucedSucceeded" → Succeeded without declaration: +200 points
- * 
- * **Misere** - Special penalty situations (rare)
- *   - "Tête" → Specific card lost improperly: −10 (typically)
- *   - "Atout" → Trump lost improperly: −10 (typically)
- * 
- * ============================================================================
- * 
- * USAGE IN CODE
- * ─────────────
- * 
- * Import types:
- *   import { Games, Players } from '@/utils/supabase/supabase';
- * 
- * Use in scoring:
- *   function calculateScore(game: Games, players: Players[]): Record<Players['id'], number> { ... }
- * 
- * Create new game (insert row):
- *   const { data, error } = await supabase
- *     .from('Games')
- *     .insert([{ 
- *       taker_id: "...",
- *       call_id: "...",
- *       contract: "Garde",
- *       n_bouts: 2,
- *       points_att: 65,
- *       players_uid: ["...", "...", "..."],
- *       // ... other required/optional fields
- *     }]);
- * 
- * Update existing game:
- *   const { data, error } = await supabase
- *     .from('Games')
- *     .update({ contract: "Garde-Sans", points_att: 70 })
- *     .eq('id', gameId);
- * 
- * ============================================================================
- */
-
 export type Json =
   | string
   | number
@@ -130,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.4"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -176,9 +48,7 @@ export type Database = {
           petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id: string | null
           players_uid: string[]
-          poignee_player_id: string | null
           poignee_player_id_arr: string[] | null
-          poignee_type: Database["public"]["Enums"]["Poignee"] | null
           poignee_type_arr: Database["public"]["Enums"]["Poignee"][] | null
           points_att: number
           taker_id: string
@@ -196,9 +66,7 @@ export type Database = {
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
           players_uid: string[]
-          poignee_player_id?: string | null
           poignee_player_id_arr?: string[] | null
-          poignee_type?: Database["public"]["Enums"]["Poignee"] | null
           poignee_type_arr?: Database["public"]["Enums"]["Poignee"][] | null
           points_att: number
           taker_id: string
@@ -216,51 +84,42 @@ export type Database = {
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
           players_uid?: string[]
-          poignee_player_id?: string | null
           poignee_player_id_arr?: string[] | null
-          poignee_type?: Database["public"]["Enums"]["Poignee"] | null
           poignee_type_arr?: Database["public"]["Enums"]["Poignee"][] | null
           points_att?: number
           taker_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "Games_call_id_fkey"
+            foreignKeyName: "games_call_id_fkey"
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "Players"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "Games_chelem_player_id_fkey"
+            foreignKeyName: "games_chelem_player_id_fkey"
             columns: ["chelem_player_id"]
             isOneToOne: false
             referencedRelation: "Players"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "Games_misere_player_id_fkey"
+            foreignKeyName: "games_misere_player_id_fkey"
             columns: ["misere_player_id"]
             isOneToOne: false
             referencedRelation: "Players"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "Games_petit_au_bout_player_id_fkey"
+            foreignKeyName: "games_petit_au_bout_player_id_fkey"
             columns: ["petit_au_bout_player_id"]
             isOneToOne: false
             referencedRelation: "Players"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "Games_poignee_player_id_fkey"
-            columns: ["poignee_player_id"]
-            isOneToOne: false
-            referencedRelation: "Players"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "Games_taker_id_fkey"
+            foreignKeyName: "games_taker_id_fkey"
             columns: ["taker_id"]
             isOneToOne: false
             referencedRelation: "Players"
@@ -291,41 +150,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_games_by_player: {
-        Args: { player_id: string }
-        Returns: {
-          call_id: string
-          chelem: Database["public"]["Enums"]["Chelem"] | null
-          chelem_player_id: string | null
-          contract: Database["public"]["Enums"]["Contract"]
-          created_at: string
-          id: string
-          misere_player_id: string | null
-          misere_type: Database["public"]["Enums"]["Misere"] | null
-          n_bouts: number
-          petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
-          petit_au_bout_player_id: string | null
-          players_uid: string[]
-          poignee_player_id: string | null
-          poignee_player_id_arr: string[] | null
-          poignee_type: Database["public"]["Enums"]["Poignee"] | null
-          poignee_type_arr: Database["public"]["Enums"]["Poignee"][] | null
-          points_att: number
-          taker_id: string
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "Games"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
+      [_ in never]: never
     }
     Enums: {
       Chelem: "AnnoucedFailed" | "AnnoucedSucceeded" | "UnannoucedSucceeded"
       Contract: "Petite" | "Garde" | "Garde-Sans" | "Garde-Contre"
       Misere: "Tête" | "Atout"
-      Petit_au_bout: "Lost" | "Won"
+      Petit_au_bout: "Won" | "Lost"
       Poignee: "Simple" | "Double" | "Triple"
     }
     CompositeTypes: {
@@ -460,7 +291,7 @@ export const Constants = {
       Chelem: ["AnnoucedFailed", "AnnoucedSucceeded", "UnannoucedSucceeded"],
       Contract: ["Petite", "Garde", "Garde-Sans", "Garde-Contre"],
       Misere: ["Tête", "Atout"],
-      Petit_au_bout: ["Lost", "Won"],
+      Petit_au_bout: ["Won", "Lost"],
       Poignee: ["Simple", "Double", "Triple"],
     },
   },

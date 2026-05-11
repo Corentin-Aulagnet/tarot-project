@@ -24,7 +24,7 @@
  * ============================================================================
  */
 
-import {Games, Players} from '../utils/supabase/supabase';
+import {Games, Players} from '../utils/supabase/types';
 /** Contract types and their point multipliers. */
 export enum Contract{
     Petite,      // 1x multiplier (base bid)
@@ -254,13 +254,14 @@ function getPointsForGame(game:Games, players:Players[]) {
   // STEP 6: Poignée bonus (hand bonus)
   // ─────────────────────────────────────────────────────────
   let poigneeValue = 0;
-    if (game.poignee_type === "Simple") {
+  if(game.poignee_type_arr && game.poignee_type_arr.length > 0){
+    if (game.poignee_type_arr[0] === "Simple") {
       poigneeValue = 20;       // 8-9 trump cards
-    } else if (game.poignee_type === "Double") {
+    } else if (game.poignee_type_arr[0] === "Double") {
       poigneeValue = 30;       // 10-12 trump cards
-    } else if (game.poignee_type === "Triple") {
+    } else if (game.poignee_type_arr[0] === "Triple") {
       poigneeValue = 40;       // 13+ trump cards
-    }else{
+    }}else{
       poigneeValue = 0;
     }
   
@@ -275,7 +276,7 @@ function getPointsForGame(game:Games, players:Players[]) {
   // ─────────────────────────────────────────────────────────
   // STEP 9: Distribute bonuses to attack/defense
   // ─────────────────────────────────────────────────────────
-  // Poignée and petit au bout apply only if contract succeeds
+  // Poignée apply only if contract succeeds
   const prime_poignee_att = contractDone ? poigneeValue : -poigneeValue;
   const prime_poignee_def = -prime_poignee_att;
   const pointsAtt = contractDone ? points : -points;

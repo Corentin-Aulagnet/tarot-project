@@ -7,16 +7,17 @@
 import "../../globals.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Players,Constants} from "@/utils/supabase/supabase";
+import { Players,Enums} from "@/utils/supabase/types";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import Example from "@/components/NavBar";
 import { Metadata } from "next";
-
+import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
 const CONTRACTS = ["Petite", "Garde", "Garde-Sans", "Garde-Contre"];
 
 export default function NewGamePage() {
     const router = useRouter();
+    const [numberOfPoignee, setNumberOfPoignee] = useState(0);
     const [players, setPlayers] = useState<Players[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [players_uid,setSelectedPlayers] = useState<Players[]>([]);
@@ -25,17 +26,17 @@ export default function NewGamePage() {
     const [nBouts, setNBouts] = useState(0);
     const isValid = nBouts >= 0 && nBouts <= 3;
     const pointsToMake = nBouts === 0 ? 56 : nBouts === 1 ? 51 : nBouts === 2 ? 41 : 36;
+    const [poigneeIds,setPoigneeIds] = useState<string[]>([]);
+    const [poigneeTypes,setPoigneeTypes] = useState<string[]>([]);
     const [form, setForm] = useState({
         call_id: "",
         contract: "Petite",
         taker_id: "",
         chelem: null as string | null,
         chelem_player_id: null as string | null,
-        poignee_type: null as string | null,
-        poignee_player_id: null as string | null,
         petit_au_bout_player_id: null as string | null,
         petit_au_bout: null as string | null,
-        misere_type: null as string | null,
+        misere_type:  null as string | null,
         misere_player_id: null as string | null,
     });
    
@@ -48,7 +49,18 @@ export default function NewGamePage() {
             if (data) {setPlayers(data as Players[]); setLoaded(true);}
         })},[]);
 
-
+const handleChangePoigneeType = (index: number, value: string) => {
+                const newPoigneeTypes = [...(poigneeTypes || [])];
+                newPoigneeTypes[index] = value;
+                setPoigneeTypes(newPoigneeTypes);
+                console.log(newPoigneeTypes);
+            }
+            const handleChangePoigneePlayerId = (index: number, value: string) => {
+                const newPoigneeIds = [...(poigneeIds || [])];
+                newPoigneeIds[index] = value;
+                setPoigneeIds(newPoigneeIds);
+                console.log(newPoigneeIds);
+            }
         const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
             const { name, value } = e.target;
             setForm((prev) => ({ ...prev, [name]: value }));
@@ -94,8 +106,8 @@ export default function NewGamePage() {
                       taker_id: form.taker_id,
                        chelem: form.chelem,
                         chelem_player_id: form.chelem_player_id,
-                         poignee_type: form.poignee_type,
-                          poignee_player_id: form.poignee_player_id,
+                         poignee_type_arr: poigneeTypes || null,
+                          poignee_player_id_arr: poigneeIds || null,
                           misere_type:form.misere_type,
                           misere_player_id:form.misere_player_id,
                           petit_au_bout_player_id: form.petit_au_bout_player_id,
@@ -189,7 +201,7 @@ export default function NewGamePage() {
                 <h1 className="font-medium">Select Misere</h1>
                 <select name="misere_type" onChange={handleChange}>
                 <option defaultValue="">None</option>
-                {Constants.public.Enums.Misere.map((p) => (
+                {Enums.Misere.map((p) => (
                     <option key={p}>{p}</option>
                 ))}
                 </select>
@@ -203,15 +215,17 @@ export default function NewGamePage() {
                 </select>
                 </div>
                 
-                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+                <div className="flex flex-row flex-wrap gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Poignee</h1>
-                <select name="poignee_type" onChange={handleChange}>
-                <option defaultValue="">None</option>
-                {Constants.public.Enums.Poignee.map((p) => (
-                    <option key={p}>{p}</option>
+{Array.from({ length: numberOfPoignee }, (_, i) => (
+                    <div key={i} className="flex flex-row gap-2 border p-1 rounded border-gray-300 border-width:15px">
+                    <select name="poignee_type" onChange={(e) => handleChangePoigneeType(i, e.target.value)}>
+                    <option defaultValue="">None</option>
+                    {Enums.Poignee.map((p) => (
+                        <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="poignee_player_id" onChange={handleChange}>
+                <select name="poignee_player_id" onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -219,6 +233,12 @@ export default function NewGamePage() {
                     </option>
                 ))}
                 </select>
+                </div>
+))}
+<PlusCircleIcon className="blue size-6" onClick={() => {setPoigneeIds([...poigneeIds, ""]);setPoigneeTypes([...poigneeTypes, ""]); setNumberOfPoignee(numberOfPoignee + 1);}} />
+                {numberOfPoignee > 0 && (
+                    <MinusCircleIcon className="size-6" onClick={() => {setPoigneeIds(poigneeIds.slice(0, -1));setPoigneeTypes(poigneeTypes.slice(0, -1));setNumberOfPoignee(numberOfPoignee - 1)}} />
+                )}
                 </div>
 
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
@@ -241,7 +261,7 @@ export default function NewGamePage() {
                 <h1 className="font-medium">Select Chelem</h1>
                 <select name="chelem" onChange={handleChange}>
                 <option value="">Chelem</option>
-                {Constants.public.Enums.Chelem.map((c) => {let s=""
+                {Enums.Chelem.map((c) => {let s=""
                     switch(c){
                         case "AnnoucedFailed":
                         s = "Announced - Failed";

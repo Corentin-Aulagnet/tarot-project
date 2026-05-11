@@ -1,5 +1,5 @@
 "use client"
-import { Constants,Games,getWinningTeam,Players } from "@/utils/supabase/supabase";
+import { Games,getWinningTeam,Players } from "@/utils/supabase/types";
 import { aggregateIterativeScores,buildGamePlayerTotals } from "@/lib/scoreUtils";
 import dynamic from "next/dynamic";
 const LineChart = dynamic(() => import("@/components/LineChart"), {

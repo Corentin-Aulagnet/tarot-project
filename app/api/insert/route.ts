@@ -38,12 +38,12 @@
  */
 
 import { supabase } from '@/utils/supabase/client';
-import { TablesInsert } from '../../../utils/supabase/supabase';
+import { GamesInsert } from '../../../utils/supabase/types';
 
 export async function POST(req: Request) {
   const body = await req.json();
 
-  const row: TablesInsert<'Games'> = body;
+  const row: GamesInsert = body;
     console.log("Inserting row:", row);
   const { data, error } = await supabase.from('Games').insert(row);
 

@@ -1,13 +1,12 @@
 "use client";
 
-import { Games } from "@/utils/supabase/supabase";
 import { useState } from "react";
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useRouter } from "next/navigation";
-import { Constants,Players } from "@/utils/supabase/supabase";
+import { Enums,Players,Games } from "@/utils/supabase/types";
 import { supabase } from "@/utils/supabase/client";
 import { useEffect } from "react";
-
+import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
 
 export default function Posts({ initialGame }:{ initialGame: Games }) {
   const [game, setGame] = useState(initialGame);
@@ -20,14 +19,16 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
       const [nBouts, setNBouts] = useState(initialGame.n_bouts || 0);
       const isValid = nBouts >= 0 && nBouts <= 3;
       const pointsToMake = nBouts === 0 ? 56 : nBouts === 1 ? 51 : nBouts === 2 ? 41 : 36;
+      const [numberOfPoignee, setNumberOfPoignee] = useState(initialGame.poignee_player_id_arr ? initialGame.poignee_player_id_arr.length : 0);
+
+      const [poigneeIds,setPoigneeIds] = useState<string[]>(initialGame.poignee_player_id_arr  || []);
+      const [poigneeTypes,setPoigneeTypes] = useState<string[]>(initialGame.poignee_type_arr  || []);
       const [form, setForm] = useState({
           call_id: initialGame.call_id || "",
           contract: initialGame.contract || "Petite",
           taker_id: initialGame.taker_id || "",
           chelem: initialGame.chelem || null,
           chelem_player_id: initialGame.chelem_player_id || null,
-          poignee_type: initialGame.poignee_type || null,
-          poignee_player_id: initialGame.poignee_player_id || null,
           petit_au_bout_player_id: initialGame.petit_au_bout_player_id || null,
           petit_au_bout: initialGame.petit_au_bout || null,
           misere_type: initialGame.misere_type || null,
@@ -50,6 +51,16 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
   }
 }, [loaded, players]);
   
+            const handleChangePoigneeType = (index: number, value: string) => {
+                const newPoigneeTypes = [...(poigneeTypes || [])];
+                newPoigneeTypes[index] = value;
+                setPoigneeTypes(newPoigneeTypes);
+            }
+            const handleChangePoigneePlayerId = (index: number, value: string) => {
+                const newPoigneeIds = [...(poigneeIds || [])];
+                newPoigneeIds[index] = value;
+                setPoigneeIds(newPoigneeIds);
+            }
           const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
               const { name, value } = e.target;
               setForm((prev) => ({ ...prev, [name]: value }));
@@ -109,8 +120,8 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                         taker_id: form.taker_id,
                          chelem: form.chelem || null,
                           chelem_player_id: form.chelem_player_id || null,
-                           poignee_type: form.poignee_type || null,
-                            poignee_player_id: form.poignee_player_id || null,
+                           poignee_type_arr: poigneeTypes || null,
+                            poignee_player_id_arr: poigneeIds || null,
                             misere_type:form.misere_type  || null,
                             misere_player_id:form.misere_player_id  || null,
                             petit_au_bout_player_id: form.petit_au_bout_player_id  || null,
@@ -167,7 +178,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Contract</h1>
             <select name="contract" value={form.contract} onChange={handleChange}>
-            {Constants.public.Enums.Contract.map((c) => (
+            {Enums.Contract.map((c) => (
                 <option key={c}>{c}</option>
             ))}
             </select>
@@ -205,7 +216,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <h1 className="font-medium">Select Misere</h1>
                 <select name="misere_type" value={form.misere_type || ""}  onChange={handleChange}>
                 <option defaultValue="" value =''>None</option>
-                {Constants.public.Enums.Misere.map((p) => (
+                {Enums.Misere.map((p) => (
                     <option key={p} value={p}>
                     {p}
                         </option>
@@ -222,22 +233,30 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 </select>
                 </div>
                 
-                <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+                <div className="flex flex-row flex-wrap gap-4 border p-2 rounded border-gray-300 border-width:15px">
                 <h1 className="font-medium">Select Poignee</h1>
-                <select name="poignee_type" value={form.poignee_type || ""} onChange={handleChange}>
-                <option defaultValue="" value =''>None</option>
-                {Constants.public.Enums.Poignee.map((p) => (
-                    <option key={p}>{p}</option>
+{Array.from({ length: numberOfPoignee }, (_, i) => (
+                    <div key={i} className="flex flex-row gap-2 border p-1 rounded border-gray-300 border-width:15px">
+                    <select name="poignee_type" value={poigneeTypes?.[i] || ""} onChange={(e) => handleChangePoigneeType(i, e.target.value)}>
+                    <option defaultValue="">None</option>
+                    {Enums.Poignee.map((p) => (
+                        <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="poignee_player_id" value={form.poignee_player_id || ""} onChange={handleChange}>
-                <option defaultValue="" value =''>Player</option>
+                <select name="poignee_player_id" value={poigneeIds?.[i] || ""} onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
+                <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
                 ))}
                 </select>
+                </div>
+))}
+<PlusCircleIcon className="blue size-6" onClick={() => {setPoigneeIds([...poigneeIds, ""]);setPoigneeTypes([...poigneeTypes, ""]); setNumberOfPoignee(numberOfPoignee + 1);}} />
+                {numberOfPoignee > 0 && (
+                    <MinusCircleIcon className="size-6" onClick={() => {setPoigneeIds(poigneeIds.slice(0, -1));setPoigneeTypes(poigneeTypes.slice(0, -1));setNumberOfPoignee(numberOfPoignee - 1)}} />
+                )}
                 </div>
 
                 <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
@@ -260,7 +279,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <h1 className="font-medium">Select Chelem</h1>
                 <select name="chelem" value={form.chelem || ""} onChange={handleChange}>
                 <option value="">Chelem</option>
-                {Constants.public.Enums.Chelem.map((c) => {let s=""
+                {Enums.Chelem.map((c) => {let s=""
                     switch(c){
                         case "AnnoucedFailed":
                         s = "Announced - Failed";

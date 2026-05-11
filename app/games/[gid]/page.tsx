@@ -1,4 +1,4 @@
-import { Games } from "@/utils/supabase/supabase";
+import { Games } from "@/utils/supabase/types";
 import Posts from "./posts"; // client component
 import { createClient } from "@/utils/supabase/client";
 

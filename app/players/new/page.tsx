@@ -1,12 +1,8 @@
 "use client";
 import "../../globals.css";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Players,Constants} from "@/utils/supabase/supabase";
 import {supabase} from "@/utils/supabase/client";
-import Example from "@/components/NavBar";
 import { useState } from "react";
-import { Metadata } from "next";
 
 export default function NewPlayerPage() {
   const router = useRouter();
