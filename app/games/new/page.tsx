@@ -5,15 +5,12 @@
 
 "use client";
 import "../../globals.css";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Players,Enums} from "@/utils/supabase/types";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
-import Example from "@/components/NavBar";
-import { Metadata } from "next";
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
-const CONTRACTS = ["Petite", "Garde", "Garde-Sans", "Garde-Contre"];
+
 
 export default function NewGamePage() {
     const router = useRouter();
@@ -163,7 +160,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Contract</h1>
             <select name="contract" onChange={handleChange}>
-            {CONTRACTS.map((c) => (
+            {Enums.Contract.map((c) => (
                 <option key={c}>{c}</option>
             ))}
             </select>
