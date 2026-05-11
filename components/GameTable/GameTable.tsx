@@ -41,7 +41,7 @@
  */
 
 'use client'
-import { Games,Players } from "../../utils/supabase/supabase";
+import { Games,Players } from "../../utils/supabase/types";
 import { getColorFromId } from "../IterativeTotalLineChart";
 import Link from "next/link";
 

@@ -2,7 +2,7 @@
 import { aggregateIterativeScores, aggregateTotalScores, buildGamePlayerTotals } from "@/lib/scoreUtils"
 import {GamesTable} from "@/components/GameTable/GameTable"
 import Link from "next/link";
-import { Games, Players } from "@/utils/supabase/supabase";
+import { Games, Players } from "@/utils/supabase/types";
 import dynamic from 'next/dynamic';
 
 const LineChart = dynamic(() => import("@/components/LineChart"), {

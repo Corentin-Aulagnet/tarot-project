@@ -1,4 +1,4 @@
-import {Database,Constants,TablesInsert} from './local_supabase';
+import {Database,Constants,TablesInsert} from './supabase';
     
 export type Games = Database["public"]["Tables"]["Games"]["Row"];
 export type Players = Database["public"]["Tables"]["Players"]["Row"];

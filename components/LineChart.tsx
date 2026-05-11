@@ -1,5 +1,5 @@
 "use client"
-import {Players} from '../utils/supabase/supabase';
+import {Players} from '../utils/supabase/types';
 import { useEffect } from "react";
 import {
   Chart as ChartJS,

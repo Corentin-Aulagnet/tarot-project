@@ -27,7 +27,7 @@
  */
 
 "use client";
-import { Players } from '@/utils/supabase/supabase';
+import { Players } from '@/utils/supabase/types';
 import { JSX, useMemo, useState } from 'react';
 import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam, ResponsiveContainer } from 'recharts';
 
