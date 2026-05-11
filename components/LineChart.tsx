@@ -62,6 +62,6 @@ export default function LineChart({ data, players,zoomIndex=10}:{ data: Record<s
         min: chartData["labels"].length - (visiblePoints ?? chartData["labels"].length),
         max: chartData["labels"].length - 1
       }
-    }, plugins: { zoom: { pan: { enabled: true ,mode:'x'}, zoom: { mode:'x' ,wheel:{enabled:true}} } } 
+    }, plugins: { zoom: { pan: { enabled: true ,mode:'x'}, zoom: { mode:'x' ,wheel:{enabled:true},pinch:{enabled:true}} } } 
   }}/>}
 }
