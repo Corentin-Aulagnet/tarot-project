@@ -13,7 +13,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
       const router = useRouter();
       const [players, setPlayers] = useState<Players[]>([]);
       const [loaded, setLoaded] = useState(false);
-      const [players_uid,setSelectedPlayers] = useState<Players[]>([]);
+      const [selectedPlayers,setSelectedPlayers] = useState<Players[]>([]);
       const [pointsAtt, setPointsAtt] = useState(initialGame.points_att || 0);
       const pointsDef = 91 - pointsAtt;
       const [nBouts, setNBouts] = useState(initialGame.n_bouts || 0);
@@ -44,15 +44,24 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                   console.error("Error fetching players:", error);
                   return;
               }
-              if (data) {setPlayers(data as Players[]); setLoaded(true);}
+              if (data) {
+                setPlayers(data as Players[]);
+                 setLoaded(true);
+                 const playerList = data as Players[];
+                 if (initialGame.players_uid) {
+                    const selected = playerList.filter(p => initialGame.players_uid?.includes(p.id));
+                    setSelectedPlayers(selected);
+                 }
+              }
+
           })},[]);
 
-  useEffect(() => {
+  /*useEffect(() => {
   if (loaded && initialGame.players_uid) {
     const selected = players.filter(p => initialGame.players_uid.includes(p.id));
     setSelectedPlayers(selected);
   }
-}, [loaded, players]);
+}, [loaded, players]);*/
   
             const handleChangePoigneeType = (index: number, value: string) => {
                 const newPoigneeTypes = [...(poigneeTypes || [])];
@@ -80,13 +89,14 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
           };
           const handlePlayersListChange = (e:React.ChangeEvent<HTMLInputElement>) => {
               //Track list of selected players
-              
               if(e.target.checked){
                   const player = players.find((p) => p.id === e.target.value);
-                  if(player)setSelectedPlayers([...players_uid, player]);
+                  if(player)setSelectedPlayers([...selectedPlayers, player]);
               } else if(!e.target.checked){
-                  setSelectedPlayers(players_uid.filter((player) => player.id !== e.target.value));
+                const selected = selectedPlayers.filter((player) => player.id !== e.target.value);
+                  setSelectedPlayers(selected);
               }
+
           };
           
           const handleChangePointsAtt = (e:React.ChangeEvent<HTMLInputElement>) => {
@@ -141,7 +151,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                             petit_au_bout:form.petit_au_bout || null,
                              points_att: pointsAtt,
                               n_bouts: nBouts,
-                               players_uid: players_uid.map(p => p.id)}),
+                               players_uid: selectedPlayers.map(p => p.id)}),
               });
               
               if (res.ok)
@@ -162,7 +172,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
             <div className="flex flex-wrap gap-2">
             {players.map((p) => (
                 <label key={p.id} className="flex items-center gap-1">
-                <input type="checkbox"  checked={players_uid.includes(p)} onChange={handlePlayersListChange} />
+                <input type="checkbox" value={p.id} checked={selectedPlayers.includes(p)} onChange={handlePlayersListChange} />
                 {p.Name}
                 </label>
             ))}
@@ -173,7 +183,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
             <h1 className="font-medium">Select Taker</h1>
             <select name="taker_id" value={form.taker_id}onChange={handleChange}>
             <option value="">Taker</option>
-            {players_uid.map((p) => (
+            {selectedPlayers.map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>
@@ -183,7 +193,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" value={form.call_id} onChange={handleChange}>
             <option value="">Select Call Player</option>
-            {players_uid.map((p) => (
+            {selectedPlayers.map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>
@@ -237,7 +247,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 </select>
                 <select name="misere_player_id" value={misereIds?.[i] || ""} onChange={(e) => handleChangeMiserePlayerId(i, e.target.value)}>
                 <option defaultValue="">Player</option>
-                {players_uid.map((p) => (
+                {selectedPlayers.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
@@ -263,7 +273,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 </select>
                 <select name="poignee_player_id" value={poigneeIds?.[i] || ""} onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
                 <option defaultValue="">Player</option>
-                {players_uid.map((p) => (
+                {selectedPlayers.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
@@ -281,7 +291,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
                 <h1 className="font-medium">Petit au bout</h1>
                 <select name="petit_au_bout_player_id" value={form.petit_au_bout_player_id || ""} onChange={handleChange}>
                 <option defaultValue="" value =''>Player</option>
-                {players_uid.map((p) => (
+                {selectedPlayers.map((p) => (
                     <option key={p.id} value={p.id}>
                     {p.Name}
                     </option>
