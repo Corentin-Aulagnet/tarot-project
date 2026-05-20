@@ -394,7 +394,46 @@ export function aggregateTotalScores(games:Games[], players:Players[]) {
   })
   return result;
 }
-
+export function getMonthScores(games:Games[],players:Players[],month:string){
+  const result = {} as Record<Players['id'], number>
+  // Initialize each player's total to 0
+  players.forEach(p => result[p.id] = 0)
+  // Filter games by month and sum scores
+  const sortedGames = [...games].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const gamesInMonth = sortedGames.filter(g => {
+    const gameDate = new Date(g.created_at);
+    const gameMonth = gameDate.toLocaleString('default', { month: 'long' });
+    return gameMonth === month;
+  });
+  gamesInMonth.forEach(g => {
+    const gameResult = games.find(gr => gr.id === g.id);
+    if (!gameResult) return;  
+    const points = getPointsForGame(g, players);
+    players.forEach(p => {
+      if(points[p.id]!==undefined){
+        result[p.id] += points[p.id]
+      }
+    })  
+  })
+  return result;
+}
+export function getPlayersByMostPlayed(games:Games[],players:Players[]){
+  const playerGameCount = {} as Record<Players['id'], number>
+  // Initialize each player's game count to 0
+  players.forEach(p => playerGameCount[p.id] = 0)
+  // Count games for each player
+  games.forEach(g => {
+    const gameResult = games.find(gr => gr.id === g.id);
+    if (!gameResult) return;  
+    g.players_uid.forEach(playerId => {
+      if(playerGameCount[playerId]!==undefined){
+        playerGameCount[playerId] += 1
+      }
+    })  
+  })
+  const result:Players[] = players.sort((a,b) => playerGameCount[b.id] - playerGameCount[a.id]);
+  return result;
+}
 /**
  * aggregateIterativeScores(games, players)
  * 
