@@ -394,7 +394,7 @@ export function aggregateTotalScores(games:Games[], players:Players[]) {
   })
   return result;
 }
-export function getMonthScores(games:Games[],players:Players[],month:string){
+export function getMonthScores(games:Games[],players:Players[],month:string):Record<Players['id'], number>{
   const result = {} as Record<Players['id'], number>
   // Initialize each player's total to 0
   players.forEach(p => result[p.id] = 0)
@@ -417,7 +417,7 @@ export function getMonthScores(games:Games[],players:Players[],month:string){
   })
   return result;
 }
-export function getPlayersByMostPlayed(games:Games[],players:Players[]){
+export function getPlayersByMostPlayed(games:Games[],players:Players[]):[Record<Players['id'], number>, Players[]]{
   const playerGameCount = {} as Record<Players['id'], number>
   // Initialize each player's game count to 0
   players.forEach(p => playerGameCount[p.id] = 0)
@@ -432,7 +432,7 @@ export function getPlayersByMostPlayed(games:Games[],players:Players[]){
     })  
   })
   const result:Players[] = players.sort((a,b) => playerGameCount[b.id] - playerGameCount[a.id]);
-  return result;
+  return [playerGameCount, result];
 }
 /**
  * aggregateIterativeScores(games, players)

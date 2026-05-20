@@ -9,11 +9,16 @@ export default async function Page() {
 const supabase = createClient();
   const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
   const { data: players }  = await supabase.from("Players").select("*").order("Name", { ascending: true });
+  const monthIndex = new Date().getUTCMonth()
+  const monthName = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+}).format(new Date())
   if (!games || !players) {
     return <div>Failed to load data</div>
   }
   return (<main className="p-6">
     <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
-    <Post games={games} players={players} />
+    <Post games={games} players={players} monthIndex={monthIndex} monthName={monthName} />
   </main>);
 }
