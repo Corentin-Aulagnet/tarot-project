@@ -18,7 +18,6 @@ const supabase = createClient();
     return <div>Failed to load data</div>
   }
   return (<main className="p-6">
-    <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
     <Post games={games} players={players} monthIndex={monthIndex} monthName={monthName} />
   </main>);
 }
