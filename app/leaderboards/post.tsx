@@ -9,7 +9,7 @@ export  function AnimatedPodium({podiumData}:{ podiumData: { id: number,changeIn
   const [activeId, setActiveId] = useState<number | null>(null);
 
   return (
-    <div className="flex items-end justify-center gap-6 h-[500px] p-10">
+    <div className="flex items-end justify-center gap-6 h-110 ">
       {podiumData.map((item) => {
         const isActive = activeId === item.id;
 
@@ -24,7 +24,8 @@ export  function AnimatedPodium({podiumData}:{ podiumData: { id: number,changeIn
               height: isActive
                 ? item.baseHeight +120
                 : item.baseHeight,
-              y: isActive ? -10 : 0,
+              y: isActive ? -20 : 0,
+              width: isActive ? 400 : 120,
               scale: isActive ? 1.05 : 1,
             }}
             transition={{
@@ -81,7 +82,7 @@ export  function AnimatedPodium({podiumData}:{ podiumData: { id: number,changeIn
                     <TrendingDown className="text-red-300" />) : null}
                 <p className="text-lg font-medium">
               
-                {item.changeInScore > 0 ? `+${item.changeInScore}` : item.changeInScore} pts
+                {item.changeInScore > 0 ? `+${item.changeInScore}` : item.changeInScore}
               </p></div>
               <p className="text-lg font-medium">
                     {item.actualScore} pts</p>
@@ -144,16 +145,9 @@ export default function Post({ games, players,monthIndex,monthName }: { games:Ga
   const bestOfMonthSorted = Object.entries(bestOfMonth).sort((a,b) => b[1] - a[1]).slice(0,3);
   const worstOfMonthSorted = Object.entries(bestOfMonth).sort((a,b) => a[1] - b[1]).slice(0,3);
   const pointsPerPlayer = aggregateTotalScores(games,players);
-  console.log("Best Players:", bestOfMonthSorted);
-  console.log("Worst Players:", worstOfMonthSorted);
+
     return <div className="p-6">
         <h1 className="font-bold mb-4" style={{ fontFamily: "Arial, sans-serif" }}>Leaderboards</h1>
-        <p className="font-semibold mb-4">Most Played Players (games played overall, on a total of {games.length} games):</p>
-        <ul>
-            {mostPlayedPlayers.map((player) => (
-                <li key={player.id}>{player.Name}: {playerGameCount[player.id] || 0}</li>
-            ))}
-        </ul>
         <p className="font-semibold mb-4">Best of {monthName} (points won in {monthName})</p>
         <ul>
             {bestOfMonthSorted.map(([playerId, score]) => (
@@ -176,18 +170,9 @@ export default function Post({ games, players,monthIndex,monthName }: { games:Ga
                 </div>
             ))}
         </ul>
-        <Podium items={bestOfMonthSorted.map((value, index) => {
-          const [playerId, score] = value;
-          console.log("Player ID:", playerId, "Score:", score,"index:", index,"height:", `h-${32 + (3-(index)) * 8}`);
-          return {
-            place: index + 1,
-            name: mostPlayedPlayers.find(p => p.id === playerId)?.Name,
-            height: `h-${56 - index*(index===1?16:4)}`//Gets the height to 56 then 40 then 32, to make the podium look better
-          };
-        })} />
         <AnimatedPodium podiumData={bestOfMonthSorted.map((value, index) => {
           const [playerId, changeInScore] = value;
-          console.log("Player ID:", playerId, "Score:", changeInScore,"index:", index,"height:", 200 + (3-(index)) * 40);
+
             return {
                 id: index+1,
                 changeInScore: changeInScore,
@@ -200,6 +185,13 @@ export default function Post({ games, players,monthIndex,monthName }: { games:Ga
                 
             }
         })}/>
+        <p className="font-semibold mb-4">Most Played Players (games played overall, on a total of {games.length} games):</p>
+        <ul>
+            {mostPlayedPlayers.map((player) => (
+                <li key={player.id}>{player.Name}: {playerGameCount[player.id] || 0}</li>
+            ))}
+        </ul>
+        
     </div>
     
 }
