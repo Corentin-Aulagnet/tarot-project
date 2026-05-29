@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/client";
 
 import Post from "./post";
 
-//export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 export default async function Page() {
 
 const supabase = createClient();
