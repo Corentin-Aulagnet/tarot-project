@@ -301,8 +301,7 @@ export  function AnimatedPodium({podiumData,fix}:{ podiumData: { id: number,chan
             
     </div>
     </div>
-  );
-}
+  );}
 export function Podium({items}:{ items: { place: number; name: string | undefined; height: string }[] }) {
 
   return (

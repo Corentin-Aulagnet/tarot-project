@@ -14,6 +14,7 @@ const supabase = createClient();
   month: "long",
   timeZone: "UTC",
 }).format(new Date())
+//console.log("Games:", games?.length);
   if (!games || !players) {
     return <div>Failed to load data</div>
   }
