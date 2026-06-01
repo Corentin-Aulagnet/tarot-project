@@ -12,3 +12,18 @@ export function getLastPlayers(games: Games[], players: Players[]) {
   if (lastPlayers.length > 0) return lastPlayers;
   
 }
+export function filterMoreRecent(games:Games[],date:Date) {
+  const filteredGames = games.filter(game => {
+    const gameDate = new Date(game.created_at);
+    return gameDate > date;
+  });
+  return filteredGames;
+}
+
+export function filterInMonth(games:Games[], monthIndex:number) {
+  const filteredGames = games.filter(game => {
+    const gameDate = new Date(game.created_at);
+    return gameDate.getUTCMonth() === monthIndex;
+  }); 
+  return filteredGames;
+}

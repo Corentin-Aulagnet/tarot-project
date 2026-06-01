@@ -20,6 +20,6 @@ export default async function HomePage() {
     
   return (<main className="p-6">
     
-    <Post games={games} players={players}/>
+    <Post games={games} players={players} monthIndex={new Date().getUTCMonth()}/>
   </main>)
 }
