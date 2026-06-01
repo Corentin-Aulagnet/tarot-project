@@ -71,10 +71,10 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
     <div className="max-h-72 overflow-auto border border-gray-300 dark:text-white" >
       <table className="min-w-full relative border-collapse dark:bg-gray-900 shadow-lg ">
         <thead className="ring-grey-90">
-          <tr className="sticky top-0">
+          <tr className="sticky top-0 z-30 bg-white dark:bg-gray-900">
             <th className="left-0 z-30 border px-4 py-2 opacity-100">Game</th>
-            {players.map(p => (<th key={p.id} className=" z-20 border px-4 py-2 bg-opacity-100">
-              <Link  className={"text-center align-text-top"} href={`/players/${p.id}`}>
+            {players.map(p => (<th key={p.id} className=" z-20 border px-4 py-2 opacity-100">
+              <Link  className={"text-center align-text-top opacity-100"} href={`/players/${p.id}`}>
                   {p.Name}
                 </Link></th>
               
@@ -84,12 +84,12 @@ export function GamesTable({ games, players, table,totals }:GameTableProps) {
 
         <tbody>
           <tr >
-              <td className={`border px-4 py-2  sticky top-17 z-20 bg-fixed font-bold`}>
+              <td className={`border px-4 py-2  sticky top-17 z-20 font-bold bg-white dark:bg-gray-900`}>
                 Totals 
               </td>
 
               {players.map(player => (
-                <td className={`border px-4 py-2  text-center sticky top-17 z-20 font-bold ${totals[player.id] >=0 ? " text-green-500" : " text-red-500"}                 `} key={player.id} >
+                <td className={`border px-4 py-2  text-center sticky top-17 z-20  bg-white dark:bg-gray-900 font-bold ${totals[player.id] >=0 ? " text-green-500" : " text-red-500"}                 `} key={player.id} >
                   {totals[player.id]?.toString() ?? "-"}
                 </td>
               ))}
