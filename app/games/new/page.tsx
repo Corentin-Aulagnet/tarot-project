@@ -31,7 +31,7 @@ export default function NewGamePage() {
     const [numberOfMisere, setNumberOfMisere] = useState(0);
     const [misereIds,setMisereIds] = useState<string[]>([]);
     const [misereTypes,setMisereTypes] = useState<string[]>([]);
-
+    const [call_color, setCallColor] = useState<string>("");
     const [form, setForm] = useState({
         call_id: "",
         contract: "Petite",
@@ -50,7 +50,11 @@ export default function NewGamePage() {
             }
             if (data) {setPlayers(data as Players[]); setLoaded(true);}
         })},[]);
-
+const handleChangeCallColor = (value: string) => {
+    setCallColor(value);
+    //setForm((prev) => ({ ...prev, called_color: value }));
+    console.log("Selected Call Color:", value);
+}
 const handleChangePoigneeType = (index: number, value: string) => {
                 const newPoigneeTypes = [...(poigneeTypes || [])];
                 newPoigneeTypes[index] = value;
@@ -116,6 +120,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
             const res = await fetch("/api/insert", {
                 method: "POST",
                 body: JSON.stringify({call_id: form.call_id,
+                    call_color: call_color,
                      contract: form.contract,
                       taker_id: form.taker_id,
                        chelem: form.chelem,
@@ -164,7 +169,22 @@ const handleChangePoigneeType = (index: number, value: string) => {
             ))}
             </select>
             </div>
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+            <h1 className="font-medium">Select Called Color</h1>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-red-500 ${call_color === "♥" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♥')}>♥</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-red-500 ${call_color === "♦" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♦')}>♦</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-black ${call_color === "♣" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♣')}>♣</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-black ${call_color === "♠" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♠')}>♠</button>
             
+            </div>
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" onChange={handleChange}>
@@ -300,7 +320,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 })}
                 </select>
                 </div>
-                <button className="bg-gray-800 text-white p-2 font-bold">Create</button>
+                <button type="submit" className="bg-gray-800 text-white p-2 font-bold">Create</button>
                 </form></main>
             );
         }

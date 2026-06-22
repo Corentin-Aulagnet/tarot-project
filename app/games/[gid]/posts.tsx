@@ -27,7 +27,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
         const [numberOfMisere, setNumberOfMisere] = useState(initialGame.misere_player_id_arr ? initialGame.misere_player_id_arr.length : 0);
       const [misereIds,setMisereIds] = useState<string[]>(initialGame.misere_player_id_arr  || []);
       const [misereTypes,setMisereTypes] = useState<string[]>(initialGame.misere_type_arr  || []);
-
+const [call_color, setCallColor] = useState<string>(initialGame.call_color || "");
       const [form, setForm] = useState({
           call_id: initialGame.call_id || "",
           contract: initialGame.contract || "Petite",
@@ -62,7 +62,11 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
     setSelectedPlayers(selected);
   }
 }, [loaded, players]);*/
-  
+  const handleChangeCallColor = (value: string) => {
+    setCallColor(value);
+    //setForm((prev) => ({ ...prev, called_color: value }));
+    console.log("Selected Call Color:", value);
+}
             const handleChangePoigneeType = (index: number, value: string) => {
                 const newPoigneeTypes = [...(poigneeTypes || [])];
                 newPoigneeTypes[index] = value;
@@ -137,6 +141,7 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
               const res = await fetch("/api/update", {
                   method: "POST",
                   body: JSON.stringify({call_id: form.call_id,
+                    call_color: call_color,
                     id: initialGame.id,
                     created_at: initialGame.created_at,
                        contract: form.contract,
@@ -188,7 +193,22 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
             ))}
             </select>
             </div>
+            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
+            <h1 className="font-medium">Select Called Color</h1>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-red-500 ${call_color === "♥" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♥')}>♥</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-red-500 ${call_color === "♦" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♦')}>♦</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-black ${call_color === "♣" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♣')}>♣</button>
+            <button type="button" className={`w-10 h-10
+    flex items-center justify-center
+    rounded-full text-black ${call_color === "♠" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♠')}>♠</button>
             
+            </div>
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" value={form.call_id} onChange={handleChange}>

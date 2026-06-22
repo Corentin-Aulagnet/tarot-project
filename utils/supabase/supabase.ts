@@ -41,6 +41,7 @@ export type Database = {
     Tables: {
       Games: {
         Row: {
+          call_color: Database["public"]["Enums"]["CardColors"] | null
           call_id: string
           chelem: Database["public"]["Enums"]["Chelem"] | null
           chelem_player_id: string | null
@@ -63,6 +64,7 @@ export type Database = {
           taker_id: string
         }
         Insert: {
+          call_color?: Database["public"]["Enums"]["CardColors"] | null
           call_id: string
           chelem?: Database["public"]["Enums"]["Chelem"] | null
           chelem_player_id?: string | null
@@ -85,6 +87,7 @@ export type Database = {
           taker_id: string
         }
         Update: {
+          call_color?: Database["public"]["Enums"]["CardColors"] | null
           call_id?: string
           chelem?: Database["public"]["Enums"]["Chelem"] | null
           chelem_player_id?: string | null
@@ -177,6 +180,7 @@ export type Database = {
       get_games_by_player: {
         Args: { player_id: string }
         Returns: {
+          call_color: Database["public"]["Enums"]["CardColors"] | null
           call_id: string
           chelem: Database["public"]["Enums"]["Chelem"] | null
           chelem_player_id: string | null
@@ -207,6 +211,7 @@ export type Database = {
       }
     }
     Enums: {
+      CardColors: "♥" | "♦" | "♣" | "♠"
       Chelem: "AnnoucedFailed" | "AnnoucedSucceeded" | "UnannoucedSucceeded"
       Contract: "Petite" | "Garde" | "Garde-Sans" | "Garde-Contre"
       Misere: "Tête" | "Atout"
@@ -342,6 +347,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      CardColors: ["♥", "♦", "♣", "♠"],
       Chelem: ["AnnoucedFailed", "AnnoucedSucceeded", "UnannoucedSucceeded"],
       Contract: ["Petite", "Garde", "Garde-Sans", "Garde-Contre"],
       Misere: ["Tête", "Atout"],
