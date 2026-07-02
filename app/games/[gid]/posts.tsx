@@ -175,7 +175,7 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
             <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Players</h1>
             <div className="flex flex-wrap gap-2">
-            {players.map((p) => (
+            {players.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
                 <label key={p.id} className="flex items-center gap-1">
                 <input type="checkbox" value={p.id} checked={selectedPlayers.includes(p)} onChange={handlePlayersListChange} />
                 {p.Name}
@@ -188,7 +188,7 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
             <h1 className="font-medium">Select Taker</h1>
             <select name="taker_id" value={form.taker_id}onChange={handleChange}>
             <option value="">Taker</option>
-            {selectedPlayers.map((p) => (
+            {selectedPlayers.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>
@@ -203,17 +203,17 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
     rounded-full text-red-500 ${call_color === "♦" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♦')}>♦</button>
             <button type="button" className={`w-10 h-10
     flex items-center justify-center
-    rounded-full text-black ${call_color === "♣" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♣')}>♣</button>
+    rounded-full dark:text-white text-black ${call_color === "♣" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♣')}>♣</button>
             <button type="button" className={`w-10 h-10
     flex items-center justify-center
-    rounded-full text-black ${call_color === "♠" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♠')}>♠</button>
+    rounded-full dark:text-white text-black ${call_color === "♠" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♠')}>♠</button>
             
             </div>
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Call Player</h1>
             <select name="call_id" value={form.call_id} onChange={handleChange}>
             <option value="">Select Call Player</option>
-            {selectedPlayers.map((p) => (
+            {selectedPlayers.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
                 <option key={p.id} value={p.id}>{p.Name}</option>
             ))}
             </select>
