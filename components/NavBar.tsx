@@ -3,7 +3,7 @@
  * Navigation header for the entire application.
  * 
  * Features:
- * - Desktop links: Home | New Game | New Player | Charts
+ * - Desktop links: Home | New Game | Players | Charts
  * - Mobile menu: Hamburger button (via Headless UI Disclosure)
  * - Current route highlighting: Active link shows bold white text
  * - Uses Heroicons for menu icons (Bars3Icon for open, XMarkIcon for close)
@@ -11,7 +11,7 @@
  * Routes:
  * - Home (/) → Dashboard with leaderboard and charts
  * - New Game (/games/new) → Form to create game
- * - New Player (/players/new) → Form to add player
+ * - Players (/players/new) → Create and manage players
  * - Charts (/charts/iterative) → Full-page score progression chart
  */
 
@@ -24,7 +24,7 @@ import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 const navigation = [
   { name: 'Home', href: '/', current: true },
   { name: 'New Game', href: '/games/new', current: false },
-  { name: 'New Player', href: '/players/new', current: false },
+  { name: 'Players', href: '/players/new', current: false },
   {name: 'Charts', href: '/charts/iterative', current: false},
   {name: 'Leaderboards', href: '/leaderboards', current: false},
   {name: 'History', href: '/history', current: false}
