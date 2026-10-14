@@ -13,6 +13,7 @@
  *   "players_uid": ["uuid", ...],    // All players in this game
  *   "contract": "Garde",             // Bid level: Petite | Garde | Garde-Sans | Garde-Contre
  *   "n_bouts": 2,                    // Count of special cards (1, 21, Jack) in attack tricks: 0-3
+ *   "n_bouts_hand_start": 1,          // Optional: bouts held in hand at the start (0-3)
  *   "points_att": 65,                // Total pip points scored by attack team: 0-91
  *   "petit_au_bout": "Won",          // Did attack win Fool in final trick? "Won" | "Lost"
  *   "petit_au_bout_player_id": "uuid", // Which player had the Fool?

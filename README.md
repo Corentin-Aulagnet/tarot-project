@@ -74,7 +74,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | Concept | Purpose |
 |---------|---------|
 | **Contract** | Bid level; determines point multiplier (Petite=1x, Garde=2x, Garde-Sans=4x, Garde-Contre=6x) |
-| **Bouts** | Count of special cards (1, 21, Jack of Trumps) in tricks won; affects points needed to make contract |
+| **Bouts** | Number of special cards (1, 21, Jack of Trumps) won by the attack team; affects points needed to make contract |
+| **Bouts in hand at start** | Optional count of those cards held at the start of the game; stored for future leaderboard analysis |
 | **Taker** | Player attacking; receives 2× multiplier on score |
 | **Caller** | Second attacker; receives 1× multiplier (can be same player as taker) |
 | **Defenders** | Remaining players; all receive equal negative score if attack succeeds |
