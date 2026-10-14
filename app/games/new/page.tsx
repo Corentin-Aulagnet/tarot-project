@@ -10,13 +10,17 @@ import { Players,Enums} from "@/utils/supabase/types";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
+import { getLastPlayers } from "@/lib/gameUtils";
 
 
 export default function NewGamePage() {
     const router = useRouter();
     
     const [players, setPlayers] = useState<Players[]>([]);
+    const [recentPlayers, setRecentPlayers] = useState<Players[]>([]);
+    const [showAllPlayers, setShowAllPlayers] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [players_uid,setSelectedPlayers] = useState<Players[]>([]);
     const [pointsAtt, setPointsAtt] = useState(0);
     const pointsDef = 91 - pointsAtt;
@@ -42,14 +46,36 @@ export default function NewGamePage() {
         petit_au_bout: null as string | null,
     });
    
-        useEffect( ()=>{
-            supabase.from("Players").select("*").then(({ data, error }) => {
-            if (error) {
-                console.error("Error fetching players:", error);
-                return;
-            }
-            if (data) {setPlayers(data as Players[]); setLoaded(true);}
-        })},[]);
+        useEffect(() => {
+            const loadPlayers = async () => {
+                const [playersResult, gamesResult] = await Promise.all([
+                    supabase.from("Players").select("*"),
+                    supabase
+                        .from("Games")
+                        .select("players_uid")
+                        .order("created_at", { ascending: false })
+                        .limit(20),
+                ]);
+
+                if (playersResult.error) {
+                    console.error("Error fetching players:", playersResult.error);
+                    setLoadError("Could not load players.");
+                    return;
+                }
+                if (gamesResult.error) {
+                    console.error("Error fetching recent games:", gamesResult.error);
+                    setLoadError("Could not load recent game history.");
+                    return;
+                }
+
+                const allPlayers = playersResult.data;
+                setPlayers(allPlayers);
+                setRecentPlayers(getLastPlayers(gamesResult.data, allPlayers, 20) ?? []);
+                setLoaded(true);
+            };
+
+            void loadPlayers();
+        }, []);
 const handleChangeCallColor = (value: string) => {
     setCallColor(value);
     //setForm((prev) => ({ ...prev, called_color: value }));
@@ -93,6 +119,14 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 setSelectedPlayers(players_uid.filter((player) => player.id !== e.target.value));
             }
         };
+        const recentPlayerIds = new Set(recentPlayers.map((player) => player.id));
+        const selectedInactivePlayers = players.filter(
+            (player) => players_uid.some((selected) => selected.id === player.id)
+                && !recentPlayerIds.has(player.id)
+        );
+        const selectablePlayers = showAllPlayers
+            ? players
+            : [...recentPlayers, ...selectedInactivePlayers];
         
         const handleChangePointsAtt = (e:React.ChangeEvent<HTMLInputElement>) => {
             const { value } = e.target;
@@ -149,11 +183,30 @@ const handleChangePoigneeType = (index: number, value: string) => {
             <h1 className="text-xl font-bold">New Game</h1>
             
             <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
-            <h1 className="font-medium">Select Players</h1>
+            <div className="flex items-center justify-between gap-2">
+                <h1 className="font-medium">Select Players</h1>
+                <button
+                    type="button"
+                    onClick={() => setShowAllPlayers(!showAllPlayers)}
+                    className="rounded border px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                    {showAllPlayers ? "Show recent players" : "Show all players"}
+                </button>
+            </div>
+            {loadError && <p role="alert" className="text-red-600">{loadError}</p>}
+            {!loaded && !loadError && <p>Loading players...</p>}
+            {loaded && recentPlayers.length === 0 && !showAllPlayers && (
+                <p>No players appeared in the last 20 games. Show all players to select from the full list.</p>
+            )}
             <div className="flex flex-wrap gap-2">
-            {players.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
+            {selectablePlayers.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
                 <label key={p.id} className="flex items-center gap-1">
-                <input type="checkbox" value={p.id} onChange={handlePlayersListChange} />
+                <input
+                    type="checkbox"
+                    value={p.id}
+                    checked={players_uid.some((selected) => selected.id === p.id)}
+                    onChange={handlePlayersListChange}
+                />
                 {p.Name}
                 </label>
             ))}

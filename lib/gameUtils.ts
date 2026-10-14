@@ -1,16 +1,14 @@
 import { Games, Players } from "@/utils/supabase/types";
-export function getLastPlayers(games: Games[], players: Players[]) {
-  
-  let playerIds: string[] = [];
-  for (let i = 0; i < 10; i++) {
-    const gameIndex = i;
-  if (gameIndex < 0 || gameIndex >= games.length) break;
-  const game = games[gameIndex];
-  playerIds = [...playerIds].concat(game.players_uid);
-  }
-  const lastPlayers = players.filter(player => playerIds.includes(player.id));
+export function getLastPlayers(
+  games: Pick<Games, "players_uid">[],
+  players: Players[],
+  gameLimit = 10
+) {
+  const playerIds = new Set(
+    games.slice(0, gameLimit).flatMap(game => game.players_uid)
+  );
+  const lastPlayers = players.filter(player => playerIds.has(player.id));
   if (lastPlayers.length > 0) return lastPlayers;
-  
 }
 export function filterMoreRecent(games:Games[],date:Date) {
   const filteredGames = games.filter(game => {
