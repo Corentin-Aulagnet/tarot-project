@@ -2,7 +2,6 @@
 import "../../globals.css";
 import { aggregateIterativeScores } from "@/lib/scoreUtils";
 import { createClient } from "@/utils/supabase/client";
-import { cookies } from "next/headers";
 import Post from "./post";
 import { getLastPlayers } from "@/lib/gameUtils";
 export const dynamic = "force-dynamic";
@@ -14,9 +13,13 @@ const supabase = createClient();
   if (!games || !players) {
     return <div>Failed to load data</div>
   }
-  const lastPlayers = getLastPlayers(games, players) || players;
+  const recentPlayers = getLastPlayers(games, players, 20) ?? [];
   return (<main className="p-6">
     <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
-    <Post data={aggregateIterativeScores(games, players)} players={players} lastPlayers={lastPlayers} />
+    <Post
+      data={aggregateIterativeScores(games, players)}
+      players={players}
+      recentPlayers={recentPlayers}
+    />
   </main>);
 }

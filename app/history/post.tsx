@@ -1,7 +1,6 @@
 "use client";
 import { aggregateIterativeScores, aggregateTotalScores, buildGamePlayerTotals } from "@/lib/scoreUtils"
 import {GamesTable} from "@/components/GameTable/GameTable"
-import Link from "next/link";
 import { Games, Players } from "@/utils/supabase/types";
 import dynamic from 'next/dynamic';
 import { getLastPlayers,filterInMonth } from "@/lib/gameUtils";
@@ -12,6 +11,7 @@ const LineChart = dynamic(() => import("@/components/LineChart"), {
 
 export default function Post({games, players}: { games: Games[] | null, players: Players[] | null }) {
   const [monthIndex, setMonthIndex] = useState(new Date().getUTCMonth());
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
     if (!games || !players) {
     return <div>Failed to load data</div>
   }
@@ -20,14 +20,16 @@ export default function Post({games, players}: { games: Games[] | null, players:
   const totals = aggregateTotalScores(games, players)
  
   const gamesInMonth = filterInMonth(games, monthIndex);
-  const lastPlayers = getLastPlayers(games, players) || players;
+  const recentPlayers = getLastPlayers(games, players, 20) ?? [];
+  const displayedPlayers = showAllPlayers ? players : recentPlayers;
    const chartData = aggregateIterativeScores(gamesInMonth, players)
     return (<div>
     <div className= "not-landscape:h-100 landscape:h-70" >
-      <div className="flex justify-start mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <select
           value={monthIndex}
-          onChange={(e) => setMonthIndex(parseInt(e.target.value))}
+          onChange={(e) => setMonthIndex(parseInt(e.target.value, 10))}
+          aria-label="Select month"
         >
           {Array.from({ length: 12 }, (_, i) => (
             <option key={i} value={i}>
@@ -35,11 +37,18 @@ export default function Post({games, players}: { games: Games[] | null, players:
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={() => setShowAllPlayers(!showAllPlayers)}
+          className="rounded border px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          {showAllPlayers ? "Show recent players" : "Show all players"}
+        </button>
       </div>
-    <LineChart data={chartData} players={players} lastPlayers={lastPlayers}  zoomIndex={10}/>
+    <LineChart data={chartData} players={displayedPlayers} lastPlayers={displayedPlayers}  zoomIndex={10}/>
 </div>
 <h1 className="font-extrabold">Games for {new Date(0, monthIndex).toLocaleString('default', { month: 'long' })}</h1>
-    <GamesTable games={gamesInMonth} players={players} table={buildGamePlayerTotals(gamesInMonth, players)} totals={aggregateTotalScores(gamesInMonth, players)}/>
+    <GamesTable games={gamesInMonth} players={displayedPlayers} table={buildGamePlayerTotals(gamesInMonth, players)} totals={aggregateTotalScores(gamesInMonth, players)}/>
     <h1 className="font-extrabold">All Games</h1>
-    <GamesTable games={games} players={players} table={table} totals={totals}/>
+    <GamesTable games={games} players={displayedPlayers} table={table} totals={totals}/>
     </div>)}
