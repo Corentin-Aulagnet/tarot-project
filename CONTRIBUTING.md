@@ -307,7 +307,8 @@ tarot-project/
    - **Taker**: Who led the attack?
    - **Caller**: Who sided with taker? (optional; can be same as taker)
    - **Contract**: Choose Petite, Garde, Garde-Sans, or Garde-Contre
-   - **Bouts**: How many of [1, 21, Jack of Trumps] in tricks won by taker? (0–3)
+   - **Number of obtained bouts** (`n_bouts`): How many of [1, 21, Jack of Trumps] the attack team won (0–3); this determines the point threshold.
+   - **Number of bouts in hand at start** (`n_bouts_hand_start`): Optional count of those cards held at the start (0–3), stored for future leaderboard analysis.
    - **Attack Points**: Total pip points scored by attack team (0–91)
    - **Bonuses**: Select petit au bout winner, poignée type/player, chelem result, misère type/player
 3. Submit → game saved to database, scores calculated
@@ -444,4 +445,3 @@ export function getPointsForGame(game: Games, players: Players[]): Record<Player
 - **Schema issues?** Check `utils/supabase/supabase.ts` for type definitions
 
 Welcome aboard! 🎴
-

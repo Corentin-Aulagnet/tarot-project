@@ -25,8 +25,11 @@ export default function NewGamePage() {
     const [pointsAtt, setPointsAtt] = useState(0);
     const pointsDef = 91 - pointsAtt;
     const [nBouts, setNBouts] = useState(0);
+    const [nBoutsHandStart, setNBoutsHandStart] = useState("");
     const isValid = nBouts >= 0 && nBouts <= 3;
     const pointsToMake = nBouts === 0 ? 56 : nBouts === 1 ? 51 : nBouts === 2 ? 41 : 36;
+    const isHandStartValid = nBoutsHandStart === ""
+        || (Number.isInteger(Number(nBoutsHandStart)) && Number(nBoutsHandStart) >= 0 && Number(nBoutsHandStart) <= 3);
 
     const [numberOfPoignee, setNumberOfPoignee] = useState(0);
     const [poigneeIds,setPoigneeIds] = useState<string[]>([]);
@@ -36,6 +39,7 @@ export default function NewGamePage() {
     const [misereIds,setMisereIds] = useState<string[]>([]);
     const [misereTypes,setMisereTypes] = useState<string[]>([]);
     const [call_color, setCallColor] = useState<string>("");
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [form, setForm] = useState({
         call_id: "",
         contract: "Petite",
@@ -151,29 +155,47 @@ const handleChangePoigneeType = (index: number, value: string) => {
         }
         const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            const res = await fetch("/api/insert", {
-                method: "POST",
-                body: JSON.stringify({call_id: form.call_id,
-                    call_color: call_color,
-                     contract: form.contract,
-                      taker_id: form.taker_id,
-                       chelem: form.chelem,
+            if (!isHandStartValid) {
+                setSubmitError("Number of bouts in hand at start must be between 0 and 3.");
+                return;
+            }
+
+            setSubmitError(null);
+            try {
+                const res = await fetch("/api/insert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        call_id: form.call_id,
+                        call_color: call_color,
+                        contract: form.contract,
+                        taker_id: form.taker_id,
+                        chelem: form.chelem,
                         chelem_player_id: form.chelem_player_id,
-                         poignee_type_arr: poigneeTypes || null,
-                          poignee_player_id_arr: poigneeIds || null,
-                          misere_type_arr: misereTypes || null,
-                          misere_player_id_arr: misereIds || null,
-                          petit_au_bout_player_id: form.petit_au_bout_player_id,
-                          petit_au_bout:form.petit_au_bout,
-                           points_att: pointsAtt,
-                            n_bouts: nBouts,
-                             players_uid: players_uid.map(p => p.id)}),
-            });
-            
-            if (res.ok)
-                {
+                        poignee_type_arr: poigneeTypes || null,
+                        poignee_player_id_arr: poigneeIds || null,
+                        misere_type_arr: misereTypes || null,
+                        misere_player_id_arr: misereIds || null,
+                        petit_au_bout_player_id: form.petit_au_bout_player_id,
+                        petit_au_bout: form.petit_au_bout,
+                        points_att: pointsAtt,
+                        n_bouts: nBouts,
+                        n_bouts_hand_start: nBoutsHandStart === "" ? null : Number(nBoutsHandStart),
+                        players_uid: players_uid.map(p => p.id),
+                    }),
+                });
+
+                if (!res.ok) {
+                    const result = await res.json();
+                    setSubmitError(result.error ?? "Could not create game.");
+                    return;
+                }
+
                 alert("Game created");
                 router.push("/");
+            } catch (error) {
+                console.error("Error creating game:", error);
+                setSubmitError("Could not create game. Check your connection and try again.");
             }
             
         };
@@ -255,12 +277,27 @@ const handleChangePoigneeType = (index: number, value: string) => {
             ))}
             </select>
             </div>
-            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
-            <h1 className="font-medium">Select Number of Bouts</h1>
+            <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
+            <h1 className="font-medium">Number of bouts</h1>
             <input name="n_bouts" className={`border p-2 rounded ${
                 isValid ? "border-gray-300" : "border-red-500"
                 }`} type="number" min={0} max={3} placeholder="Bouts"  onBlur={handleChangeNBouts}  />
+            <label htmlFor="n_bouts_hand_start" className="font-medium">
+                Number of bouts (at start)
+            </label>
+            <input
+                id="n_bouts_hand_start"
+                name="n_bouts_hand_start"
+                type="number"
+                min={0}
+                max={3}
+                step={1}
+                value={nBoutsHandStart}
+                onChange={(e) => setNBoutsHandStart(e.target.value)}
+                className={`rounded border p-2 ${isHandStartValid ? "border-gray-300" : "border-red-500"}`}
+            />
                 </div>
+                {submitError && <p role="alert" className="text-red-600">{submitError}</p>}
                 
                 <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">  
                 <h1 className="font-medium">Enter Points</h1>
