@@ -1,397 +1,253 @@
-"use client"
-import { aggregateTotalScores, getMonthScores, getPlayersByMostPlayed } from "@/lib/scoreUtils"
-import { Players,Games } from "@/utils/supabase/types"
-import { TrendingUp,TrendingDown } from "@deemlol/next-icons"
+"use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
-export  function AnimatedPodium({podiumData,fix}:{ podiumData: { id: number,changeInScore:number,previousScore:number,actualScore:number, name: string | undefined ,color: string, activeColor: string,baseHeight: number}[] ,fix:string}) {
-  const [activeId, setActiveId] = useState<number | null>(null);
+import {
+  aggregateTotalScores,
+  buildGamePlayerTotals,
+  getPlayersByMostPlayed,
+} from "@/lib/scoreUtils";
+import { Games, Players } from "@/utils/supabase/types";
 
-  return (
-    <div className='flex flex-col items-center gap-6'>
-      <motion.div
-            key={podiumData[0].id}
-            layout
-            onClick={() =>
-              setActiveId(activeId === podiumData[0].id ? null : podiumData[0].id)
-            }
-            animate={{
-              width: activeId === podiumData[0].id
-                ? 300
-                : 150,
-              //y: activeId === podiumData[0].id ? -20 : 0,
-              //width: activeId === podiumData[0].id ? 400 : 120,
-              scale: activeId === podiumData[0].id ? 1.05 : 1,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 18,
-            }} className={`
-              relative
-              w-54
-              rounded-3xl
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors
-              duration-300
-              ${
-                activeId === podiumData[0].id
-                  ?  podiumData[0].activeColor
-                  :  podiumData[0].color
-              }
-            `}>
-              <div className="flex flex-col items-center justify-center gap-2">
-              <div className={"flex flex-"+(activeId === podiumData[0].id ? "row" : "col")+" items-center justify-center gap-2"}>
-              <div className="text-4xl font-bold">
-              #{podiumData[0].id}
-            </div>
+type RankingItem = {
+  key: string;
+  title: string;
+  value: string;
+  detail?: string;
+};
 
-            <div className="mt-2 text-xl font-semibold">
-              {podiumData[0].name}
-            </div></div><motion.div
-              initial={false}
-              animate={{
-                opacity: activeId === podiumData[0].id ? 1 : 0,
-    height: activeId === podiumData[0].id ? "auto" : 0,
-    marginTop: activeId === podiumData[0].id ? 8 : 0,
-    display: activeId === podiumData[0].id ? "flex" : "none",
-              }}
-              //transition={{ duration: 0.300 }}
-              className="relative
-              
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors
-              duration-100"
-            >
-                <div className="flex flex-row items-center justify-center gap-2">
-                    <p className="overflow-hidden text-lg font-medium">
-                    {podiumData[0].previousScore} pts</p>
-               <div className="flex items-center justify-center gap-2">
-                    {podiumData[0].changeInScore > 0 ? (
-                    
-                    <TrendingUp className="text-green-300" />) : podiumData[0].changeInScore < 0 ? (
-                    <TrendingDown className="text-red-300" />) : null}
-                <p className="text-lg font-medium">
-              
-                {podiumData[0].changeInScore > 0 ? `+${podiumData[0].changeInScore}` : podiumData[0].changeInScore}
-              </p></div>
-              <p className="text-lg font-medium">
-                    {podiumData[0].actualScore} pts</p>
-      </div>
-             {/* <p className="mt-2 text-sm opacity-80">
-                Additional information about the player
-                can appear here.
-              </p>*/}
-            </motion.div></div></motion.div>
-    
-    <div className='flex gap-4'>
-<motion.div
-            key={podiumData[1].id}
-            layout
-            onClick={() =>
-              setActiveId(activeId === podiumData[1].id ? null : podiumData[1].id)
-            }
-            animate={{
-              width:
-                activeId === podiumData[1].id
-                  ? 260
-                  : activeId === podiumData[2].id
-                    ? 65
-                    : 175,
-              //y: activeId === podiumData[1].id ? -20 : 0,
-              //width: activeId === podiumData[1].id ? 400 : 120,
-              scale:
-                activeId === podiumData[1].id
-                  ? 1.05
-                  : activeId === podiumData[2].id
-                    ? 0.96
-                    : 1,
-              
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 18,
-            }} className={`
-              relative
-              w-54 rounded-3xl
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors
-              duration-300
-              ${
-                activeId === podiumData[1].id
-                  ?  podiumData[1].activeColor
-                  :  podiumData[1].color
-              }
-            `}>
-              <div className="flex flex-col items-center justify-center gap-2">
-              <div className={"flex flex-"+(activeId === podiumData[1].id ? "row" : "col")+" items-center justify-center gap-2"}>
-              <div className="text-4xl font-bold">
-              #{podiumData[1].id}
-            </div>
+const rankStyles = [
+  "border-yellow-400 bg-yellow-100 dark:border-yellow-600 dark:bg-yellow-900/40",
+  "border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800",
+  "border-orange-400 bg-orange-100 dark:border-orange-700 dark:bg-orange-900/40",
+  "border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800",
+];
 
-            <div className="mt-2 text-xl font-semibold">
-              {podiumData[1].name}
-            </div></div><motion.div 
-              initial={false}
-              animate={{
-                opacity: activeId === podiumData[1].id ? 1 : 0,
-    height: activeId === podiumData[1].id ? "auto" : 0,
-    marginTop: activeId === podiumData[1].id ? 8 : 0,
-    display: activeId === podiumData[1].id ? "flex" : "none",
-                
-              }}
-              transition={{ duration: 0.2 }}
-              className="relative
-              
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors"
-            >
-                <div className="flex flex-row items-center justify-center gap-2">
-                    <p className="text-lg font-medium">
-                    {podiumData[1].previousScore} pts</p>
-               <div className="flex items-center justify-center gap-2">
-                    {podiumData[1].changeInScore > 0 ? (
-                    
-                    <TrendingUp className="text-green-300" />) : podiumData[1].changeInScore < 0 ? (
-                    <TrendingDown className="text-red-300" />) : null}
-                <p className="text-lg font-medium">
-              
-                {podiumData[1].changeInScore > 0 ? `+${podiumData[1].changeInScore}` : podiumData[1].changeInScore}
-              </p></div>
-              <p className="text-lg font-medium">
-                    {podiumData[1].actualScore} pts</p>
-      </div>
-             {/* <p className="mt-2 text-sm opacity-80">
-                Additional information about the player
-                can appear here.
-              </p>*/}
-            </motion.div>
-            </div></motion.div>
-
-            <motion.div
-            key={podiumData[2].id}
-            layout
-            onClick={() =>
-              setActiveId(activeId === podiumData[2].id ? null : podiumData[2].id)
-            }
-            animate={{
-               width:
-                activeId === podiumData[2].id
-                  ? 260
-                  : activeId === podiumData[1].id
-                    ? 65
-                    : 150,
-              //y: activeId === podiumData[1].id ? -20 : 0,
-              //width: activeId === podiumData[1].id ? 400 : 120,
-              scale:
-                activeId === podiumData[2].id
-                  ? 1.05
-                  : activeId === podiumData[1].id
-                    ? 0.96
-                    : 1,
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 200,
-              damping: 18,
-            }} className={`
-              
-              relative
-              w-54 rounded-3xl
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors
-              duration-300
-              ${
-                activeId === podiumData[2].id
-                  ?  podiumData[2].activeColor
-                  :  podiumData[2].color
-              }
-            `}>
-              <div className="flex flex-col items-center justify-center gap-2">
-              <div className={"flex flex-"+(activeId === podiumData[2].id ? "row" : "col")+" items-center justify-center gap-2"}>
-              <div className="text-4xl font-bold">
-              #{podiumData[2].id}
-            </div>
-
-            <div className="mt-2 text-xl font-semibold">
-              {podiumData[2].name}
-            </div>
-            </div>
-            <motion.div
-              initial={false}
-              animate={{
-                opacity: activeId === podiumData[2].id ? 1 : 0,
-    height: activeId === podiumData[2].id ? "auto" : 0,
-    marginTop: activeId === podiumData[2].id ? 8 : 0,
-    display: activeId === podiumData[2].id ? "flex" : "none",
-              }}
-              //transition={{ duration: 0.300 }}
-              className="relative
-              
-              cursor-pointer
-              p-4
-              text-white
-              shadow-2xl
-              flex
-              items-center
-              justify-center
-              overflow-hidden
-              transition-colors
-              duration-100"
-            >
-                <div className="flex flex-row items-center justify-center gap-2">
-                    <p className="text-lg font-medium">
-                    {podiumData[2].previousScore} pts</p>
-               <div className="flex items-center justify-center gap-2">
-                    {podiumData[2].changeInScore > 0 ? (
-                    
-                    <TrendingUp className="text-green-300" />) : podiumData[2].changeInScore < 0 ? (
-                    <TrendingDown className="text-red-300" />) : null}
-                <p className="text-lg font-medium">
-              
-                {podiumData[2].changeInScore > 0 ? `+${podiumData[2].changeInScore}` : podiumData[2].changeInScore}
-              </p></div>
-              <p className="text-lg font-medium">
-                    {podiumData[2].actualScore} pts</p>
-      </div>
-             {/* <p className="mt-2 text-sm opacity-80">
-                Additional information about the player
-                can appear here.
-              </p>*/}
-            </motion.div>
-            </div>
-            </motion.div>
-            
-            
-    </div>
-    </div>
-  );}
-export function Podium({items}:{ items: { place: number; name: string | undefined; height: string }[] }) {
+function RankingCards({
+  items,
+  emptyMessage,
+  stacked = false,
+}: {
+  items: RankingItem[];
+  emptyMessage: string;
+  stacked?: boolean;
+}) {
+  if (items.length === 0) {
+    return <p className="text-sm text-gray-600 dark:text-gray-300">{emptyMessage}</p>;
+  }
 
   return (
-    <div className="flex items-end justify-center gap-6 h-80">
-      {items.map((item) => (
-        <div
-          key={item.place}
-          className={`
-            ${item.height}
-            w-32
-            rounded-2xl
-            bg-zinc-800
-            text-white
-            flex
-            flex-col
-            items-center
-            justify-center
-            shadow-lg
-          `}
+    <ol className={`grid justify-items-start gap-2 ${stacked ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"}`}>
+      {items.map((item, index) => (
+        <li
+          key={item.key}
+          className={`flex ${stacked ? "min-h-20" : "h-20"} w-full items-center gap-3 rounded-lg border p-3 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
         >
-          <div className="text-3xl font-bold">
-            #{item.place}
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-sm font-bold text-gray-800 dark:bg-black/20 dark:text-white">
+            #{index + 1}
+          </span>
+          <div className="min-w-0 flex-1 text-left">
+            <p className={stacked ? "break-words font-semibold" : "truncate font-semibold"}>{item.title}</p>
+            <p className={stacked ? "break-words text-sm" : "truncate text-sm"}>{item.value}</p>
+            {item.detail && (
+              <p className={stacked ? "break-words text-xs text-gray-600 dark:text-gray-300" : "truncate text-xs text-gray-600 dark:text-gray-300"}>
+                {item.detail}
+              </p>
+            )}
           </div>
-
-          <div className="mt-2 text-lg">
-            {item.name}
-          </div>
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
 
+export default function Post({
+  games,
+  players,
+  monthIndex,
+  monthName,
+}: {
+  games: Games[];
+  players: Players[];
+  monthIndex: number;
+  monthName: string;
+}) {
+  const [playerGameCount, mostPlayedPlayers] = getPlayersByMostPlayed(games, players);
+  const topPlayedPlayers = mostPlayedPlayers.slice(0, 10);
 
-export default function Post({ games, players,monthIndex,monthName }: { games:Games[], players: Players[],monthIndex:number,monthName:string }){
-    const [playerGameCount,_mostPlayedPlayers] = getPlayersByMostPlayed(games, players);
-    const mostPlayedPlayers = _mostPlayedPlayers.slice(0,10);
-    
-    const sortedGames = [...games].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    const gamesInMonth = sortedGames.filter(g => {
-        const gameDate = new Date(g.created_at)
-    return gameDate.getUTCMonth() === monthIndex
-  });
-  const bestOfMonth = aggregateTotalScores(gamesInMonth, mostPlayedPlayers);
-  const bestOfMonthSorted = Object.entries(bestOfMonth).sort((a,b) => b[1] - a[1]).slice(0,3);
-  const worstOfMonthSorted = Object.entries(bestOfMonth).sort((a,b) => a[1] - b[1]).slice(0,3);
-  const pointsPerPlayer = aggregateTotalScores(games,players);
+  const sortedGames = [...games].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+  const gamesInMonth = sortedGames.filter(
+    game => new Date(game.created_at).getUTCMonth() === monthIndex
+  );
+  const monthlyScores = aggregateTotalScores(gamesInMonth, topPlayedPlayers);
+  const allTimeScores = aggregateTotalScores(games, players);
+  const gamePlayerTotals = buildGamePlayerTotals(games, players);
+  const playerNames = new Map(players.map(player => [player.id, player.Name]));
+  const formatGameDate = (createdAt: string) => new Date(createdAt).toLocaleDateString();
 
-    return <div className="p-6">
-        <h1 className="font-bold mb-4" style={{ fontFamily: "Arial, sans-serif" }}>Leaderboards</h1>
-        <p className="font-semibold mb-4">Best of {monthName} (points won in {monthName})</p>
-        <AnimatedPodium podiumData={bestOfMonthSorted.map((value, index) => {
-          const [playerId, changeInScore] = value;
+  const bestOfMonth = Object.entries(monthlyScores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([playerId, score]) => ({
+      key: playerId,
+      title: playerNames.get(playerId) ?? "Unknown player",
+      value: `${score > 0 ? "+" : ""}${score} points`,
+      detail: `All-time total: ${allTimeScores[playerId] ?? 0} points`,
+    }));
+  const worstOfMonth = Object.entries(monthlyScores)
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 3)
+    .map(([playerId, score]) => ({
+      key: playerId,
+      title: playerNames.get(playerId) ?? "Unknown player",
+      value: `${score} points`,
+      detail: `All-time total: ${allTimeScores[playerId] ?? 0} points`,
+    }));
 
-            return {
-                id: index+1,
-                changeInScore: changeInScore,
-                name: mostPlayedPlayers.find(p => p.id === playerId)?.Name,
-                color: index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : "bg-orange-500",
-                activeColor: "bg-green-600" ,
-                baseHeight: 260 - index*(index===1?80:60),
-                previousScore: pointsPerPlayer[playerId] - changeInScore,
-                actualScore: pointsPerPlayer[playerId],
-                
-            }
-        })} fix='end'/>
-        <p className="font-semibold mb-4">Worst of {monthName} (points lost in {monthName})</p>
-        <AnimatedPodium podiumData={worstOfMonthSorted.map((value, index) => {
-          const [playerId, changeInScore] = value;
+  const mostCalledColors = ["♥", "♦", "♣", "♠"].map(color => ({
+    color,
+    count: games.filter(game => game.call_color === color).length,
+  })).sort((a, b) => b.count - a.count || ["♥", "♦", "♣", "♠"].indexOf(a.color) - ["♥", "♦", "♣", "♠"].indexOf(b.color));
 
-            return {
-                id: index+1,
-                changeInScore: changeInScore,
-                name: mostPlayedPlayers.find(p => p.id === playerId)?.Name,
-                color: index === 0 ? "bg-orange-500" : index === 1 ? "bg-gray-400" : "bg-yellow-500",
-                activeColor: "bg-red-600" ,
-                baseHeight: 260 - index*(index===1?80:60),
-                previousScore: pointsPerPlayer[playerId] - changeInScore,
-                actualScore: pointsPerPlayer[playerId],
-                
-            }
-        })} fix='start'/>
-        
-        <p className="font-semibold mb-4">Most Played Players (games played overall, on a total of {games.length} games):</p>
-        <ul>
-            {mostPlayedPlayers.map((player) => (
-                <li key={player.id}>{player.Name}: {playerGameCount[player.id] || 0}</li>
-            ))}
-        </ul>
-        
+  const playerGameScores = games.flatMap(game =>
+    Object.entries(gamePlayerTotals[game.id] ?? {}).map(([playerId, score]) => ({
+      gameId: game.id,
+      createdAt: game.created_at,
+      playerName: playerNames.get(playerId) ?? "Unknown player",
+      score,
+    }))
+  );
+  const biggestWins = playerGameScores
+    .filter(result => result.score > 0)
+    .sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt))
+    .slice(0, 3)
+    .map((result, index) => ({
+      key: `${result.gameId}-${result.playerName}-${index}`,
+      title: result.playerName,
+      value: `+${result.score} points`,
+      detail: formatGameDate(result.createdAt),
+    }));
+  const biggestLosses = playerGameScores
+    .filter(result => result.score < 0)
+    .sort((a, b) => a.score - b.score || a.createdAt.localeCompare(b.createdAt))
+    .slice(0, 3)
+    .map((result, index) => ({
+      key: `${result.gameId}-${result.playerName}-${index}`,
+      title: result.playerName,
+      value: `${result.score} points`,
+      detail: formatGameDate(result.createdAt),
+    }));
+
+  const mostPointsByBouts = [0, 1, 2].map(nBouts => ({
+    nBouts,
+    games: [...games]
+      .filter(game => game.n_bouts === nBouts)
+      .sort((a, b) => b.points_att - a.points_att || a.created_at.localeCompare(b.created_at))
+      .slice(0, 3)
+      .map(game => {
+        const takerName = playerNames.get(game.taker_id) ?? "Unknown player";
+        const callerName = playerNames.get(game.call_id) ?? "Unknown player";
+        return {
+          key: game.id,
+          title: game.taker_id === game.call_id
+            ? takerName
+            : `${takerName} and ${callerName}`,
+          value: `${game.points_att} attack points`,
+          detail: formatGameDate(game.created_at),
+        };
+      }),
+  }));
+
+  const mostPlayedItems = topPlayedPlayers.map((player, index) => ({
+    key: player.id,
+    title: player.Name,
+    value: `${playerGameCount[player.id] ?? 0} games`,
+    detail: `${games.length} games recorded`,
+    rank: index + 1,
+  }));
+
+  return (
+    <div className="space-y-8 p-6">
+      <h1 className="font-bold" style={{ fontFamily: "Arial, sans-serif" }}>
+        Statistics
+      </h1>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">
+          Best of {monthName} <span className="text-sm font-normal">(points won)</span>
+        </h2>
+        <RankingCards items={bestOfMonth} emptyMessage="No games recorded this month." />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">
+          Worst of {monthName} <span className="text-sm font-normal">(points lost)</span>
+        </h2>
+        <RankingCards items={worstOfMonth} emptyMessage="No games recorded this month." />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">
+          Most Played Players <span className="text-sm font-normal">(of {games.length} games)</span>
+        </h2>
+        <ol className="grid grid-cols-1 justify-items-start gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {mostPlayedItems.map(item => (
+            <li
+              key={item.key}
+              className={`flex h-20 w-full items-center gap-3 rounded-lg border p-3 shadow-sm ${rankStyles[Math.min(item.rank - 1, rankStyles.length - 1)]}`}
+            >
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-sm font-bold text-gray-800 dark:bg-black/20 dark:text-white">
+                #{item.rank}
+              </span>
+              <div className="min-w-0 text-left">
+                <p className="truncate font-semibold">{item.title}</p>
+                <p className="truncate text-sm">{item.value}</p>
+                <p className="truncate text-xs text-gray-600 dark:text-gray-300">{item.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold">Most called suit</h2>
+        <RankingCards
+          items={mostCalledColors.map(({ color, count }) => ({
+            key: color,
+            title: color,
+            value: `${count} ${count === 1 ? "game" : "games"}`,
+          }))}
+          emptyMessage="No called suits have been recorded yet."
+        />
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Biggest win in a game</h2>
+          <RankingCards items={biggestWins} emptyMessage="No positive game scores recorded." />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Biggest loss in a game</h2>
+          <RankingCards items={biggestLosses} emptyMessage="No negative game scores recorded." />
+        </section>
+      </div>
+
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold">Most points by number of bouts</h2>
+        <div className="grid gap-5 lg:grid-cols-2">
+          {mostPointsByBouts.map(({ nBouts, games: rankedGames }) => (
+            <section key={nBouts} className="space-y-3">
+              <h3 className="font-medium">With {nBouts} bouts</h3>
+              <RankingCards
+                items={rankedGames}
+                emptyMessage={`No games with ${nBouts} bouts recorded.`}
+                stacked
+              />
+            </section>
+          ))}
+        </div>
+      </section>
     </div>
-    
+  );
 }
