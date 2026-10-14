@@ -26,7 +26,7 @@ const navigation = [
   { name: 'New Game', href: '/games/new', current: false },
   { name: 'Players', href: '/players/new', current: false },
   {name: 'Charts', href: '/charts/iterative', current: false},
-  {name: 'Leaderboards', href: '/leaderboards', current: false},
+  {name: 'Statistics', href: '/leaderboards', current: false},
   {name: 'History', href: '/history', current: false}
 ]
 
