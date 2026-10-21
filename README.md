@@ -1,6 +1,6 @@
 # Tarot Card Game Score Tracker
 
-A real-time game scoring and analytics platform for Tarot card games. Track scores across multiple players, visualize trends, and manage game history.
+AA real-time game scoring and analytics platform for Tarot card games. Track scores across multiple players, visualize trends, and manage game history.
 
 **Built with**: Next.js 16, React 19, TypeScript, Tailwind CSS, Supabase (PostgreSQL)
 
