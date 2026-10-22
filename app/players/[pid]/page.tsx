@@ -16,9 +16,19 @@ export default async function Page({ params }: { params: { pid: string } }) {
   if (!player) {
     return <div>Player not found</div>;
   }
-    const { data, error } = await supabase.rpc('get_games_by_player', {player_id: pid });
-    if (error)console.error(error);
-    const games: Games[] = data || [];
-    return <Posts player={player} games={games} />;
+  const [{ data, error }, playersResult] = await Promise.all([
+    supabase.rpc("get_games_by_player", { player_id: pid }),
+    supabase.from("Players").select("*"),
+  ]);
+  if (error) {
+    console.error("Error fetching games for player:", error);
+    return <div>Could not load player statistics. Please try again later.</div>;
+  }
+  if (playersResult.error) {
+    console.error("Error fetching players for player statistics:", playersResult.error);
+    return <div>Could not load player statistics. Please try again later.</div>;
+  }
+  const games: Games[] = data ?? [];
+  return <Posts player={player} games={games} players={playersResult.data} />;
 }
           
