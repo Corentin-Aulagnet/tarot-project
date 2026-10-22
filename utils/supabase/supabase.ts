@@ -163,18 +163,21 @@ export type Database = {
           id: string
           Name: string
           preferred_color: string | null
+          preferred_color_selected: boolean
         }
         Insert: {
           created_at?: string
           id?: string
           Name: string
           preferred_color?: string | null
+          preferred_color_selected?: boolean
         }
         Update: {
           created_at?: string
           id?: string
           Name?: string
           preferred_color?: string | null
+          preferred_color_selected?: boolean
         }
         Relationships: []
       }
@@ -183,6 +186,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_player_preferred_color: {
+        Args: {
+          p_color: string
+          p_player_id: string
+        }
+        Returns: undefined
+      }
       get_games_by_player: {
         Args: { player_id: string }
         Returns: {

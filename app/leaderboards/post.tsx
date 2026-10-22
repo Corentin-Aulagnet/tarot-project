@@ -7,6 +7,7 @@ import {
 } from "@/lib/scoreUtils";
 import { Games, Players } from "@/utils/supabase/types";
 import SuitSymbol from "@/components/SuitSymbol";
+import { formatGameDate } from "@/lib/dateUtils";
 
 type RankingItem = {
   key: string;
@@ -17,17 +18,17 @@ type RankingItem = {
 };
 
 const rankStyles = [
-  "border-yellow-400 bg-yellow-100 dark:border-yellow-600 dark:bg-yellow-900/40",
-  "border-slate-200 bg-gray-600 text-white dark:border-slate-300 dark:bg-gray-700",
-  "border-orange-400 bg-orange-100 dark:border-orange-700 dark:bg-orange-900/40",
-  "border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800",
+  "border-orange-300 bg-orange-200 text-gray-900 dark:border-orange-300 dark:bg-orange-200 dark:text-gray-900",
+  "border-slate-300 bg-slate-200 text-gray-900 dark:border-slate-300 dark:bg-slate-200 dark:text-gray-900",
+  "border-stone-400 bg-stone-300 text-gray-900 dark:border-stone-400 dark:bg-stone-300 dark:text-gray-900",
+  "border-[#9fbe98] bg-[#c6dec1] text-gray-900 dark:border-[#9fbe98] dark:bg-[#c6dec1] dark:text-gray-900",
 ];
 
 const rankingDetailStyles = [
-  "text-gray-600 dark:text-gray-300",
-  "text-gray-100 dark:text-gray-200",
-  "text-gray-600 dark:text-gray-300",
-  "text-gray-600 dark:text-gray-300",
+  "text-gray-700 dark:text-gray-700",
+  "text-gray-700 dark:text-gray-700",
+  "text-gray-700 dark:text-gray-700",
+  "text-gray-700 dark:text-gray-700",
 ];
 
 function RankingCards({
@@ -52,7 +53,12 @@ function RankingCards({
         >
           <div className="min-w-0 flex-1 text-left">
             <p className={stacked ? "whitespace-pre-line break-words text-sm font-semibold leading-tight" : "truncate text-sm font-semibold leading-tight"}>
-              {item.suit ? <SuitSymbol suit={item.suit} /> : item.title}
+              {item.suit ? (
+                <SuitSymbol
+                  suit={item.suit}
+                  className={item.suit === "♣" || item.suit === "♠" ? "!text-black" : ""}
+                />
+              ) : item.title}
             </p>
             <p className={stacked ? "break-words text-xs leading-tight" : "truncate text-xs leading-tight"}>{item.value}</p>
             {item.detail && (
@@ -90,8 +96,6 @@ export default function Post({
   const monthlyScores = aggregateTotalScores(gamesInMonth, topPlayedPlayers);
   const gamePlayerTotals = buildGamePlayerTotals(games, players);
   const playerNames = new Map(players.map(player => [player.id, player.Name]));
-  const formatGameDate = (createdAt: string) => new Date(createdAt).toLocaleDateString();
-
   const bestOfMonth = Object.entries(monthlyScores)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)

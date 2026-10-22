@@ -3,6 +3,7 @@ import { Games,Players } from "@/utils/supabase/types";
 import { aggregateIterativeScores,buildGamePlayerTotals } from "@/lib/scoreUtils";
 import { getPlayerStatistics } from "@/lib/playerStats";
 import { getAvailablePlayerColors } from "@/lib/playerColors";
+import PlayerColorPicker from "@/components/PlayerColorPicker";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
 import { supabase } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
@@ -14,6 +15,7 @@ const LineChart = dynamic(() => import("@/components/LineChart"), {
 
 export default function Posts({ player,games,players }:{ player: Players,games:Games[]|null,players:Players[]}) {
     const [currentPlayer, setCurrentPlayer] = useState(player);
+    const [currentPlayers, setCurrentPlayers] = useState(players);
     const [isEditingName, setIsEditingName] = useState(false);
     const [editingName, setEditingName] = useState(player.Name);
     const [isSavingName, setIsSavingName] = useState(false);
@@ -21,12 +23,8 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
     const [error, setError] = useState<string | null>(null);
     const allGames = games ?? [];
     const pointsPerGame = buildGamePlayerTotals(allGames, [currentPlayer]);
-    const stats = getPlayerStatistics(currentPlayer, allGames, players, pointsPerGame);
-    const availableColors = getAvailablePlayerColors(players, currentPlayer.id);
-    const selectableColors = currentPlayer.preferred_color
-        && !availableColors.some(color => color.value === currentPlayer.preferred_color)
-        ? [{ name: "Current color", value: currentPlayer.preferred_color }, ...availableColors]
-        : availableColors;
+    const stats = getPlayerStatistics(currentPlayer, allGames, currentPlayers, pointsPerGame);
+    const availableColors = getAvailablePlayerColors(currentPlayers, currentPlayer.id);
     const handleSaveName = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const trimmedName = editingName.trim();
@@ -54,24 +52,44 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
     };
 
     const handleColorChange = async (color: string) => {
-        if (!color || color === currentPlayer.preferred_color) return;
+        if (!color || (
+            color === currentPlayer.preferred_color
+            && currentPlayer.preferred_color_selected
+        )) return;
         setError(null);
         setIsSavingColor(true);
-        const { error: updateError } = await supabase
-            .from("Players")
-            .update({ preferred_color: color })
-            .eq("id", currentPlayer.id);
-        setIsSavingColor(false);
+        const { error: updateError } = await supabase.rpc("set_player_preferred_color", {
+            p_player_id: currentPlayer.id,
+            p_color: color,
+        });
 
         if (updateError) {
+            setIsSavingColor(false);
             console.error("Error updating preferred player color:", updateError);
             setError(updateError.code === "23505"
-                ? "That color is already in use. Please choose another."
+                ? "That color has already been selected by another player. Please choose another."
                 : "Could not update player color. Please try again.");
             return;
         }
 
-        setCurrentPlayer({ ...currentPlayer, preferred_color: color });
+        const { data: refreshedPlayers, error: refreshError } = await supabase
+            .from("Players")
+            .select("*");
+        setIsSavingColor(false);
+        if (refreshError) {
+            console.error("Error refreshing player colors:", refreshError);
+            setCurrentPlayer({
+                ...currentPlayer,
+                preferred_color: color,
+                preferred_color_selected: true,
+            });
+            setError("Color updated, but player colors could not be refreshed. Reload the page to update the chart.");
+            return;
+        }
+
+        setCurrentPlayers(refreshedPlayers);
+        const refreshedPlayer = refreshedPlayers.find(candidate => candidate.id === currentPlayer.id);
+        if (refreshedPlayer) setCurrentPlayer(refreshedPlayer);
     };
 
     return (<div>
@@ -122,27 +140,14 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
                 </>
             )}
             <div className="flex items-center gap-2">
-                <label htmlFor="player-preferred-color" className="text-sm font-medium">
+                <span className="text-sm font-medium">
                     Preferred color
-                </label>
-                <select
-                    id="player-preferred-color"
-                    value={currentPlayer.preferred_color ?? ""}
-                    onChange={event => void handleColorChange(event.target.value)}
+                </span>
+                <PlayerColorPicker
+                    color={currentPlayer.preferred_color ?? "#6b7280"}
+                    availableColors={availableColors}
+                    onSelect={color => void handleColorChange(color)}
                     disabled={isSavingColor}
-                    className="rounded border border-gray-300 px-2 py-1.5 disabled:opacity-50"
-                >
-                    {!currentPlayer.preferred_color && (
-                        <option value="" disabled>Select a color</option>
-                    )}
-                    {selectableColors.map(color => (
-                        <option key={color.value} value={color.value}>{color.name}</option>
-                    ))}
-                </select>
-                <span
-                    aria-label="Current preferred color"
-                    className="size-6 rounded-full border border-gray-400"
-                    style={{ backgroundColor: currentPlayer.preferred_color ?? "#cccccc" }}
                 />
             </div>
         </div>

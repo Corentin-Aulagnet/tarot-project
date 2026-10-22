@@ -55,7 +55,11 @@ export const PLAYER_COLORS = [
 export function getAvailablePlayerColors(players: Players[], playerId?: string) {
   const usedColors = new Set(
     players
-      .filter(player => player.id !== playerId && player.preferred_color)
+      .filter(player =>
+        player.id !== playerId
+        && player.preferred_color
+        && player.preferred_color_selected
+      )
       .map(player => player.preferred_color?.toLowerCase())
   );
   return PLAYER_COLORS.filter(color => !usedColors.has(color.value));
@@ -63,9 +67,12 @@ export function getAvailablePlayerColors(players: Players[], playerId?: string) 
 
 export function getDefaultPlayerColor(player: Players, players: Players[]) {
   if (player.preferred_color) return player.preferred_color;
+  return PLAYER_COLORS[0].value;
+}
 
-  const stablePlayers = [...players].sort((a, b) => a.id.localeCompare(b.id));
-  const playerIndex = stablePlayers.findIndex(candidate => candidate.id === player.id);
-  const availableColor = getAvailablePlayerColors(players, player.id)[0];
-  return availableColor?.value ?? PLAYER_COLORS[Math.max(playerIndex, 0) % PLAYER_COLORS.length].value;
+export function getUnassignedPlayerColor(players: Players[]) {
+  const assignedColors = new Set(
+    players.map(player => player.preferred_color?.toLowerCase()).filter(Boolean)
+  );
+  return PLAYER_COLORS.find(color => !assignedColors.has(color.value))?.value ?? null;
 }

@@ -27,8 +27,8 @@
  * STYLING:
  * ────────
  * - Uses Tailwind CSS with custom z-index stacking for sticky elements
- * - Players with positive scores: green text
- * - Players with negative scores: red text
+ * - Player names use their assigned chart color
+ * - Totals use soft red/green backgrounds with white text
  * - Alternating row backgrounds (odd/even) for readability
  * - Colors from getColorFromId() generator function
  * 
@@ -42,8 +42,9 @@
 
 'use client'
 import { Games,Players } from "../../utils/supabase/types";
-import { getColorFromId } from "../IterativeTotalLineChart";
 import Link from "next/link";
+import { formatGameDateTime } from "@/lib/dateUtils";
+import { getDefaultPlayerColor } from "@/lib/playerColors";
 
 /**
  * Props for the GamesTable component.
@@ -57,7 +58,8 @@ export type GameTableProps={
   games:Games[],
   players:Players[],
   table: Record<Games['id'], Record<Players['id'],number>>
-  totals: Record<Players['id'],number>
+  totals: Record<Players['id'],number>,
+  recentPlayers?: boolean,
 }
 
 /**
@@ -66,88 +68,103 @@ export type GameTableProps={
  * @param props GameTableProps
  * @returns Rendered table with game rows and player score columns
  */
-export function GamesTable({ games, players, table,totals }:GameTableProps) {
+export function GamesTable({ games, players, table,totals, recentPlayers = false }:GameTableProps) {
+  const totalCellStyle = (score: number) => ({
+    backgroundColor: score >= 0 ? "#6f9c7e" : "#b9737c",
+  });
+
   return (
-    <div className="max-h-72 overflow-auto border border-gray-300 dark:text-white" >
-      <table className="min-w-full relative border-collapse dark:bg-gray-900 shadow-lg ">
-        <thead className="ring-grey-90">
+    <div
+      className="game-results-scroll overflow-auto border border-gray-300 dark:text-white"
+      data-player-scope={recentPlayers ? "recent" : "all"}
+    >
+      <table className="game-results-landscape min-w-full border-collapse bg-white shadow-lg dark:bg-gray-900">
+        <thead>
           <tr className="sticky top-0 z-30 bg-white dark:bg-gray-900">
-            <th className="left-0 z-30 border px-4 py-2 opacity-100">Game</th>
-            {players.map(p => (<th key={p.id} className=" z-20 border px-4 py-2 opacity-100">
-              <Link  className={"text-center align-text-top opacity-100"} href={`/players/${p.id}`}>
-                  {p.Name}
-                </Link></th>
-              
+            <th className="whitespace-nowrap border px-2 py-2">Game</th>
+            {players.map(player => (
+              <th key={player.id} className="whitespace-nowrap border px-2 py-2">
+                <Link
+                  className="text-center"
+                  href={`/players/${player.id}`}
+                  style={{ color: getDefaultPlayerColor(player, players) }}
+                >
+                  {player.Name}
+                </Link>
+              </th>
             ))}
           </tr>
         </thead>
-
         <tbody>
-          <tr >
-              <td className={`border px-4 py-2  sticky top-17 z-20 font-bold bg-white dark:bg-gray-900`}>
-                Totals 
+          <tr className="sticky top-10 z-20 bg-white font-bold dark:bg-gray-900">
+            <td className="border px-2 py-2">Totals</td>
+            {players.map(player => (
+              <td
+                key={player.id}
+                className="sticky top-10 border border-white px-2 py-2 text-center font-bold text-white"
+                style={totalCellStyle(totals[player.id])}
+              >
+                {totals[player.id]?.toString() ?? "-"}
               </td>
-
-              {players.map(player => (
-                <td className={`border px-4 py-2  text-center sticky top-17 z-20  bg-white dark:bg-gray-900 font-bold ${totals[player.id] >=0 ? " text-green-500" : " text-red-500"}                 `} key={player.id} >
-                  {totals[player.id]?.toString() ?? "-"}
-                </td>
-              ))}
-            </tr>
-          {games.map((game) => (
-            <tr key={game.id} >
-              <td className={`border px-4 py-2 dark:bg-gray-700`}>
-                <Link className={"dark:bg-gray-700"}href={`/games/${game.id}`}>
-                  {`${new Date(game.created_at).toLocaleDateString()} ${new Date(game.created_at).toLocaleTimeString()}`}
+            ))}
+          </tr>
+          {games.map(game => (
+            <tr key={game.id}>
+              <td className="whitespace-nowrap border px-2 py-2 dark:bg-gray-700">
+                <Link href={`/games/${game.id}`}>
+                  {formatGameDateTime(game.created_at)}
                 </Link>
               </td>
-
               {players.map(player => (
-                <td className={`border px-4 py-2 text-center dark:text-white
-                } `} key={player.id}  >
-                  {table[game.id][player.id]?.toString() ?? "-"}
+                <td key={player.id} className="border px-2 py-2 text-center dark:text-white">
+                  {table[game.id]?.[player.id]?.toString() ?? "-"}
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
-      <style jsx>{`
-        .table-container {
-          max-height: 400px;
-          overflow: auto;
-          border: 1px solid #ccc;
-        }
 
-        table {
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        th, td {
-          padding: 8px 12px;
-          border: 1px solid #ddd;
-        }
-
-        thead th {
-          position: sticky;
-          top: 0;
-          z-index: 2;
-          /* background: #f5f5f5; */
-        }
-
-        .sticky-col {
-          position: sticky;
-          left: 0;
-          z-index: 1;
-          background: #fff;
-        }
-
-        thead .sticky-col {
-          z-index: 3; /* above everything */
-          /* background: #f5f5f5; */
-        }
-      `}</style>
+      <table className="game-results-portrait hidden border-collapse bg-white shadow-lg dark:bg-gray-900">
+        <thead>
+          <tr className="sticky top-0 z-30 bg-white dark:bg-gray-900">
+            <th className="sticky left-0 z-40 border px-2 py-2">Player</th>
+            <th className="border px-2 py-2">Total</th>
+            {games.map(game => (
+              <th key={game.id} className="game-results-date-cell whitespace-nowrap border px-2 py-2">
+                <Link href={`/games/${game.id}`} className="block whitespace-nowrap">
+                  {formatGameDateTime(game.created_at)}
+                </Link>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {players.map(player => (
+            <tr key={player.id}>
+              <th className="sticky left-0 z-20 whitespace-nowrap border bg-white px-2 py-2 text-left dark:bg-gray-900">
+                <Link
+                  href={`/players/${player.id}`}
+                  style={{ color: getDefaultPlayerColor(player, players) }}
+                >
+                  {player.Name}
+                </Link>
+              </th>
+              <td
+                className="border border-white px-2 py-2 text-center font-bold text-white"
+                style={totalCellStyle(totals[player.id])}
+              >
+                {totals[player.id]?.toString() ?? "-"}
+              </td>
+              {games.map(game => (
+                <td key={game.id} className="game-results-date-cell border px-2 py-2 text-center">
+                  {table[game.id]?.[player.id]?.toString() ?? "-"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

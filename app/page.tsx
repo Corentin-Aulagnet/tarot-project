@@ -18,8 +18,9 @@ export default async function HomePage() {
     .order("Name", { ascending: true })
 
     
-  return (<main className="p-6">
-    
-    <Post games={games} players={players} monthIndex={new Date().getUTCMonth()}/>
-  </main>)
+  return (
+    <main className="p-6">
+      <Post games={games} players={players} />
+    </main>
+  );
 }

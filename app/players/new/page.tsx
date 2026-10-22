@@ -4,7 +4,12 @@ import {supabase} from "@/utils/supabase/client";
 import { Games, Players } from "@/utils/supabase/types";
 import { buildGamePlayerTotals } from "@/lib/scoreUtils";
 import { getPlayerStatistics } from "@/lib/playerStats";
-import { getAvailablePlayerColors } from "@/lib/playerColors";
+import {
+  getAvailablePlayerColors,
+  getDefaultPlayerColor,
+  getUnassignedPlayerColor,
+} from "@/lib/playerColors";
+import PlayerColorPicker from "@/components/PlayerColorPicker";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -42,7 +47,7 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<Players[]>([]);
   const [games, setGames] = useState<Games[]>([]);
   const [name, setName] = useState("");
-  const [preferredColor, setPreferredColor] = useState("");
+  const [preferredColor, setPreferredColor] = useState<string | null>(null);
   const [sortField, setSortField] = useState<PlayerSortField>("name");
   const [sortAscending, setSortAscending] = useState(true);
   const [showAllPlayers, setShowAllPlayers] = useState(false);
@@ -110,32 +115,53 @@ export default function PlayersPage() {
     setError(null);
     setMessage(null);
     setIsSaving(true);
-    const selectedColor = preferredColor || availableColors[0]?.value;
-    if (!selectedColor) {
+    const defaultColor = getUnassignedPlayerColor(players);
+    if (!defaultColor) {
       setIsSaving(false);
-      setError("No unused player colors are available.");
+      setError("No default player colors are available.");
       return;
     }
-    const { error: insertError } = await supabase
+    const { data: insertedPlayer, error: insertError } = await supabase
       .from("Players")
-      .insert({ Name: trimmedName, preferred_color: selectedColor });
-    setIsSaving(false);
+      .insert({
+        Name: trimmedName,
+        preferred_color: defaultColor,
+        preferred_color_selected: false,
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
+      setIsSaving(false);
       console.error("Error creating player:", insertError);
       setError(insertError.code === "23505"
-        ? "That color is already in use. Please choose another."
+        ? "Could not assign a unique default color. Please try again."
         : "Could not create player. Please try again.");
       return;
     }
 
+    let colorSelectionError: string | null = null;
+    if (preferredColor) {
+      const { error: colorError } = await supabase.rpc("set_player_preferred_color", {
+        p_player_id: insertedPlayer.id,
+        p_color: preferredColor,
+      });
+      if (colorError) {
+        console.error("Error selecting new player's preferred color:", colorError);
+        colorSelectionError = "Player was added with a default color, but the selected color could not be assigned. Please choose it again from the player page.";
+      }
+    }
+
+    setIsSaving(false);
     setName("");
-    setPreferredColor("");
-    setMessage("Player added.");
+    setPreferredColor(null);
+    if (colorSelectionError) setError(colorSelectionError);
+    else setMessage("Player added.");
     await refreshPlayers();
   };
 
   const availableColors = getAvailablePlayerColors(players);
+  const defaultColor = getUnassignedPlayerColor(players);
   const gamePlayerTotals = buildGamePlayerTotals(games, players);
   const playersWithStats = players.map(player => ({
     player,
@@ -185,32 +211,20 @@ export default function PlayersPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="new-player-color" className="font-medium">Color</label>
-          <select
-            id="new-player-color"
-            value={preferredColor || availableColors[0]?.value || ""}
-            onChange={event => setPreferredColor(event.target.value)}
-            disabled={availableColors.length === 0}
-            className="rounded border border-gray-300 px-2 py-2"
-          >
-            {availableColors.map(color => (
-              <option key={color.value} value={color.value}>{color.name}</option>
-            ))}
-          </select>
-          {preferredColor && (
-            <span
-              aria-label="Selected player color"
-              className="size-6 rounded-full border border-gray-400"
-              style={{ backgroundColor: preferredColor }}
-            />
-          )}
+          <span className="font-medium">Preferred color</span>
+          <PlayerColorPicker
+            color={preferredColor ?? defaultColor ?? "#6b7280"}
+            availableColors={availableColors}
+            onSelect={setPreferredColor}
+            disabled={isSaving || availableColors.length === 0}
+          />
         </div>
         <button
           type="submit"
-          disabled={isSaving || availableColors.length === 0}
+          disabled={isSaving || !defaultColor}
           className="rounded bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600 disabled:opacity-50"
         >
-          {availableColors.length === 0 ? "No colors available" : isSaving ? "Adding..." : "Add"}
+          {!defaultColor ? "No colors available" : isSaving ? "Adding..." : "Add"}
         </button>
       </form>
 
@@ -272,6 +286,7 @@ export default function PlayersPage() {
                     <Link
                       href={`/players/${player.id}`}
                       className="w-fit font-semibold text-blue-700 hover:underline dark:text-blue-300"
+                      style={{ color: getDefaultPlayerColor(player, players) }}
                     >
                       {player.Name}
                     </Link>

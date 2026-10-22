@@ -63,6 +63,45 @@ export function generateColors(count: number) {
     return `hsl(${hue}, 65%, 55%)`;
   });
 }
+
+function PlayerLegend({
+  payload,
+  players,
+  activeSeries,
+  onToggle,
+}: {
+  payload?: readonly { value: string | undefined }[];
+  players: Players[];
+  activeSeries: string[];
+  onToggle: (name: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+      {payload?.map(entry => {
+        const name = String(entry.value ?? "");
+        const player = players.find(candidate => candidate.Name === name);
+        if (!player) return null;
+
+        return (
+          <button
+            key={player.id}
+            type="button"
+            aria-pressed={activeSeries.includes(name)}
+            onClick={() => onToggle(name)}
+            className="cursor-pointer text-[25px] leading-tight"
+            style={{
+              color: getColorFromId(player.id, players),
+              opacity: activeSeries.includes(name) ? 1 : 0.55,
+            }}
+          >
+            {name}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export  function IterativeTotalLineChart({ chartData ,players}: { chartData: Record<string, number | null>[] , players: Players[]}) {  
   /**
    * active state tracks which player lines are visible (for interactive toggles if added).
@@ -104,10 +143,17 @@ export  function IterativeTotalLineChart({ chartData ,players}: { chartData: Rec
 
         />
       )}
-<Legend height='fit-content' onClick={(e) => {
-    if (!e) return;
-    handleLegendClick(e.value!);
-  }} />
+<Legend
+  height="fit-content"
+  content={({ payload }) => (
+    <PlayerLegend
+      payload={payload}
+      players={players}
+      activeSeries={activeSeries}
+      onToggle={handleLegendClick}
+    />
+  )}
+/>
       {/* For each player, we create a line with a different color. The dataKey is the player id, and the name is the player name. The colors are defined in the CSS variables --color-chart-1, --color-chart-2, etc. */
       players.map((player, index) => (
         <Line
@@ -151,10 +197,17 @@ export function IterativeTotalLineChartCanOpen({ chartData ,players}: { chartDat
       <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-3)" />
       {/*<XAxis dataKey="gameNumber" stroke="var(--color-text-3)" />*/}
       <YAxis width="auto" stroke="var(--color-text-3)" />
-      <Legend height='fit-content'  onClick={(e) => {
-    if (!e) return;
-    handleLegendClick(e.value!);
-  }} />
+      <Legend
+        height="fit-content"
+        content={({ payload }) => (
+          <PlayerLegend
+            payload={payload}
+            players={players}
+            activeSeries={activeSeries}
+            onToggle={handleLegendClick}
+          />
+        )}
+      />
       {/* For each player, we create a line with a different color. The dataKey is the player id, and the name is the player name. The colors are defined in the CSS variables --color-chart-1, --color-chart-2, etc. */
      
       players.map((player, index) => (

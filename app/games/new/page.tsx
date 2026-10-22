@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
 import { getLastPlayers } from "@/lib/gameUtils";
 import SuitSymbol from "@/components/SuitSymbol";
+import { getDefaultPlayerColor } from "@/lib/playerColors";
 
 
 export default function NewGamePage() {
@@ -57,7 +58,7 @@ export default function NewGamePage() {
                     supabase.from("Players").select("*"),
                     supabase
                         .from("Games")
-                        .select("players_uid")
+                        .select("players_uid, created_at")
                         .order("created_at", { ascending: false })
                         .limit(20),
                 ]);
@@ -76,6 +77,11 @@ export default function NewGamePage() {
                 const allPlayers = playersResult.data;
                 setPlayers(allPlayers);
                 setRecentPlayers(getLastPlayers(gamesResult.data, allPlayers, 20) ?? []);
+                const latestGame = gamesResult.data[0];
+                if (latestGame) {
+                    const latestGamePlayerIds = new Set(latestGame.players_uid);
+                    setSelectedPlayers(allPlayers.filter(player => latestGamePlayerIds.has(player.id)));
+                }
                 setLoaded(true);
             };
 
@@ -230,7 +236,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                     checked={players_uid.some((selected) => selected.id === p.id)}
                     onChange={handlePlayersListChange}
                 />
-                {p.Name}
+                <span style={{ color: getDefaultPlayerColor(p, players) }}>{p.Name}</span>
                 </label>
             ))}
             </div>
@@ -241,7 +247,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
             <select name="taker_id" onChange={handleChange}>
             <option value="">Taker</option>
             {players_uid.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
-                <option key={p.id} value={p.id}>{p.Name}</option>
+                <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>{p.Name}</option>
             ))}
             </select>
             </div>
@@ -266,7 +272,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
             <select name="call_id" onChange={handleChange}>
             <option value="">Select Call Player</option>
             {players_uid.map((p) => (
-                <option key={p.id} value={p.id}>{p.Name}</option>
+                <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>{p.Name}</option>
             ))}
             </select>
             </div>
@@ -335,7 +341,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <select name="misere_player_id" onChange={(e) => handleChangeMiserePlayerId(i, e.target.value)}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
                     </option>
                 ))}
@@ -362,7 +368,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <select name="poignee_player_id" onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
                     </option>
                 ))}
@@ -380,7 +386,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <select name="petit_au_bout_player_id" onChange={handleChange}>
                 <option defaultValue="">Player</option>
                 {players_uid.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
                     </option>
                 ))}

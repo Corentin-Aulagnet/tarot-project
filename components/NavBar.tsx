@@ -3,7 +3,7 @@
  * Navigation header for the entire application.
  * 
  * Features:
- * - Desktop links: Home | New Game | Players | History
+ * - Desktop links: Home | New Game | Players | Statistics
  * - Mobile menu: Hamburger button (via Headless UI Disclosure)
  * - Current route highlighting: Active link shows bold white text
  * - Uses Heroicons for menu icons (Bars3Icon for open, XMarkIcon for close)
@@ -12,21 +12,27 @@
  * - Home (/) → Dashboard with leaderboard and charts
  * - New Game (/games/new) → Form to create game
  * - Players (/players/new) → Create and manage players
- * - History (/history) → Game history, monthly chart, and all-games score chart
+ * - Home (/) → Monthly and all-time game charts and history tables
  */
 
 "use client";
 import Link from "next/link";
 import "@/app/globals.css";
 import { usePathname } from 'next/navigation';
-import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
+import {
+  Bars3Icon,
+  HomeIcon,
+  PlusCircleIcon,
+  TrophyIcon,
+  UserGroupIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 const navigation = [
-  { name: 'Home', href: '/', current: true },
-  { name: 'New Game', href: '/games/new', current: false },
-  { name: 'Players', href: '/players/new', current: false },
-  {name: 'Statistics', href: '/leaderboards', current: false},
-  {name: 'History', href: '/history', current: false}
+  { name: 'Home', href: '/', Icon: HomeIcon },
+  { name: 'New Game', href: '/games/new', Icon: PlusCircleIcon },
+  { name: 'Players', href: '/players/new', Icon: UserGroupIcon },
+  { name: 'Statistics', href: '/leaderboards', Icon: TrophyIcon },
 ]
 
 function classNames(...classes: string[]) {
@@ -54,12 +60,14 @@ export default function Example() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    aria-current={item.current ? 'page' : undefined}
+                    title={item.name}
+                    aria-label={item.name}
+                    aria-current={currentRoute === item.href ? 'page' : undefined}
                     className={classNames(
                       currentRoute === item.href ? "text-white bg-gray-900 font-bold" : "text-gray-300 hover:bg-white/5 hover:text-white"
-    ,                   " rounded-md px-3 py-2 text-sm font-medium")}
+    ,                   " rounded-md p-2 text-sm font-medium")}
                   >
-                    {item.name}
+                    <item.Icon aria-hidden="true" className="size-6" />
                   </Link>
                 ))}
               </div>
@@ -74,12 +82,14 @@ export default function Example() {
               key={item.name}
               as="a"
               href={item.href}
-              aria-current={item.current ? 'page' : undefined}
+              title={item.name}
+              aria-label={item.name}
+              aria-current={currentRoute === item.href ? 'page' : undefined}
               className={classNames(
                       currentRoute === item.href ? "text-white bg-gray-900" : "text-gray-300 hover:bg-white/5 hover:text-white"
-    ,                   "rounded-md px-3 py-2 text-sm font-medium")}
+    ,                   "inline-flex items-center rounded-md p-2 text-sm font-medium")}
             >
-              {item.name}
+              <item.Icon aria-hidden="true" className="size-6" />
             </DisclosureButton>
           ))}
         </div>

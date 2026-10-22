@@ -142,18 +142,21 @@ export type Database = {
           id: string
           Name: string
           preferred_color: string | null
+          preferred_color_selected: boolean
         }
         Insert: {
           created_at?: string
           id?: string
           Name: string
           preferred_color?: string | null
+          preferred_color_selected?: boolean
         }
         Update: {
           created_at?: string
           id?: string
           Name?: string
           preferred_color?: string | null
+          preferred_color_selected?: boolean
         }
         Relationships: []
       }
