@@ -35,20 +35,20 @@ function RankingCards({
   }
 
   return (
-    <ol className={`grid justify-items-start gap-2 ${stacked ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"}`}>
+    <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] justify-items-start gap-1.5">
       {items.map((item, index) => (
         <li
           key={item.key}
-          className={`flex ${stacked ? "min-h-20" : "h-20"} w-full items-center gap-3 rounded-lg border p-3 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
+          className={`flex ${stacked ? "min-h-16" : "h-16"} w-full items-center gap-2 rounded-md border p-2 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-sm font-bold text-gray-800 dark:bg-black/20 dark:text-white">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-bold text-gray-800 dark:bg-black/20 dark:text-white">
             #{index + 1}
           </span>
           <div className="min-w-0 flex-1 text-left">
-            <p className={stacked ? "break-words font-semibold" : "truncate font-semibold"}>{item.title}</p>
-            <p className={stacked ? "break-words text-sm" : "truncate text-sm"}>{item.value}</p>
+            <p className={stacked ? "whitespace-pre-line break-words text-sm font-semibold leading-tight" : "truncate text-sm font-semibold leading-tight"}>{item.title}</p>
+            <p className={stacked ? "break-words text-xs leading-tight" : "truncate text-xs leading-tight"}>{item.value}</p>
             {item.detail && (
-              <p className={stacked ? "break-words text-xs text-gray-600 dark:text-gray-300" : "truncate text-xs text-gray-600 dark:text-gray-300"}>
+              <p className={stacked ? "whitespace-pre-line break-words text-[11px] leading-tight text-gray-600 dark:text-gray-300" : "truncate text-[11px] leading-tight text-gray-600 dark:text-gray-300"}>
                 {item.detail}
               </p>
             )}
@@ -80,7 +80,6 @@ export default function Post({
     game => new Date(game.created_at).getUTCMonth() === monthIndex
   );
   const monthlyScores = aggregateTotalScores(gamesInMonth, topPlayedPlayers);
-  const allTimeScores = aggregateTotalScores(games, players);
   const gamePlayerTotals = buildGamePlayerTotals(games, players);
   const playerNames = new Map(players.map(player => [player.id, player.Name]));
   const formatGameDate = (createdAt: string) => new Date(createdAt).toLocaleDateString();
@@ -92,7 +91,6 @@ export default function Post({
       key: playerId,
       title: playerNames.get(playerId) ?? "Unknown player",
       value: `${score > 0 ? "+" : ""}${score} points`,
-      detail: `All-time total: ${allTimeScores[playerId] ?? 0} points`,
     }));
   const worstOfMonth = Object.entries(monthlyScores)
     .sort((a, b) => a[1] - b[1])
@@ -101,7 +99,6 @@ export default function Post({
       key: playerId,
       title: playerNames.get(playerId) ?? "Unknown player",
       value: `${score} points`,
-      detail: `All-time total: ${allTimeScores[playerId] ?? 0} points`,
     }));
 
   const mostCalledColors = ["♥", "♦", "♣", "♠"].map(color => ({
@@ -156,66 +153,165 @@ export default function Post({
           key: game.id,
           title: game.taker_id === game.call_id
             ? takerName
-            : `${takerName} and ${callerName}`,
-          value: `${takerScore > 0 ? "+" : ""}${takerScore} final score points`,
-          detail: `${game.points_att} attack points · ${formatGameDate(game.created_at)}`,
+            : `${takerName}\n${callerName}`,
+          value: `${takerScore > 0 ? "+" : ""}${takerScore} scored`,
+          detail: `${game.points_att} attack points\n${formatGameDate(game.created_at)}`,
         };
       }),
   }));
+
+  const pointsToMakeByBouts = new Map([
+    [0, 56],
+    [1, 51],
+    [2, 41],
+    [3, 36],
+  ]);
+  const noInitialBoutsGames = games.filter(game => game.n_bouts_hand_start === 0);
+  const initialBoutsByTaker = new Map<string, { totalBouts: number; games: number }>();
+  games.forEach(game => {
+    if (game.n_bouts_hand_start === null) return;
+    const stats = initialBoutsByTaker.get(game.taker_id) ?? { totalBouts: 0, games: 0 };
+    stats.totalBouts += game.n_bouts_hand_start;
+    stats.games += 1;
+    initialBoutsByTaker.set(game.taker_id, stats);
+  });
+  const mostAdventurous = [...initialBoutsByTaker.entries()]
+    .sort(([playerA, statsA], [playerB, statsB]) =>
+      statsA.totalBouts / statsA.games - statsB.totalBouts / statsB.games
+      || (playerNames.get(playerA) ?? "").localeCompare(playerNames.get(playerB) ?? "")
+    )
+    .slice(0, 10)
+    .map(([playerId, stats]) => ({
+      key: playerId,
+      title: playerNames.get(playerId) ?? "Unknown player",
+      value: `${(stats.totalBouts / stats.games).toFixed(2)} bouts`,
+      detail: `${stats.games} ${stats.games === 1 ? "take" : "takes"}`,
+    }));
+
+  const noBoutsTakerStats = new Map<string, { attempts: number; successes: number }>();
+  noInitialBoutsGames.forEach(game => {
+    const stats = noBoutsTakerStats.get(game.taker_id) ?? { attempts: 0, successes: 0 };
+    stats.attempts += 1;
+    const pointsToMake = pointsToMakeByBouts.get(game.n_bouts);
+    if (pointsToMake !== undefined && game.points_att >= pointsToMake) {
+      stats.successes += 1;
+    }
+    noBoutsTakerStats.set(game.taker_id, stats);
+  });
+
+  const noBoutsTakers = [...noBoutsTakerStats.entries()]
+    .sort(([playerA, statsA], [playerB, statsB]) =>
+      statsB.attempts - statsA.attempts
+      || statsB.successes / statsB.attempts - statsA.successes / statsA.attempts
+      || (playerNames.get(playerA) ?? "").localeCompare(playerNames.get(playerB) ?? "")
+    )
+    .slice(0, 10)
+    .map(([playerId, stats]) => ({
+      key: playerId,
+      title: playerNames.get(playerId) ?? "Unknown player",
+      value: `${stats.attempts} ${stats.attempts === 1 ? "take" : "takes"}`,
+      detail: `${Math.round(stats.successes / stats.attempts * 100)}% success (${stats.successes}/${stats.attempts})`,
+    }));
+
+  const biggestNoBoutsWins = noInitialBoutsGames
+    .map(game => ({
+      game,
+      takerScore: gamePlayerTotals[game.id]?.[game.taker_id] ?? 0,
+    }))
+    .filter(result => result.takerScore > 0)
+    .sort((a, b) =>
+      b.takerScore - a.takerScore
+      || a.game.created_at.localeCompare(b.game.created_at)
+    )
+    .slice(0, 3)
+    .map(({ game, takerScore }) => ({
+      key: game.id,
+      title: playerNames.get(game.taker_id) ?? "Unknown player",
+      value: `+${takerScore} scored`,
+      detail: `${game.points_att} attack points\n${formatGameDate(game.created_at)}`,
+    }));
 
   const mostPlayedItems = topPlayedPlayers.map((player, index) => ({
     key: player.id,
     title: player.Name,
     value: `${playerGameCount[player.id] ?? 0} games`,
-    detail: `${games.length} games recorded`,
     rank: index + 1,
   }));
 
   return (
-    <div className="space-y-8 p-6">
+    <div className="space-y-5 p-3 sm:p-4">
       <h1 className="font-bold" style={{ fontFamily: "Arial, sans-serif" }}>
         Statistics
       </h1>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">
-          Best of {monthName} <span className="text-sm font-normal">(points won)</span>
-        </h2>
-        <RankingCards items={bestOfMonth} emptyMessage="No games recorded this month." />
-      </section>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold">
+            Best of {monthName} <span className="text-sm font-normal">(points won)</span>
+          </h2>
+          <RankingCards items={bestOfMonth} emptyMessage="No games recorded this month." />
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold">
+            Worst of {monthName} <span className="text-sm font-normal">(points lost)</span>
+          </h2>
+          <RankingCards items={worstOfMonth} emptyMessage="No games recorded this month." />
+        </section>
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold">Biggest win in a game</h2>
+          <RankingCards items={biggestWins} emptyMessage="No positive game scores recorded." />
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold">Biggest loss in a game</h2>
+          <RankingCards items={biggestLosses} emptyMessage="No negative game scores recorded." />
+        </section>
+      </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">
-          Worst of {monthName} <span className="text-sm font-normal">(points lost)</span>
-        </h2>
-        <RankingCards items={worstOfMonth} emptyMessage="No games recorded this month." />
+        <h2 className="text-base font-semibold">Most points by number of bouts</h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
+          {mostPointsByBouts.map(({ nBouts, games: rankedGames }) => (
+            <section key={nBouts} className="space-y-2">
+              <h3 className="text-sm font-medium">With {nBouts} bouts</h3>
+              <RankingCards
+                items={rankedGames}
+                emptyMessage={`No games with ${nBouts} bouts recorded.`}
+                stacked
+              />
+            </section>
+          ))}
+        </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold">
           Most Played Players <span className="text-sm font-normal">(of {games.length} games)</span>
         </h2>
-        <ol className="grid grid-cols-1 justify-items-start gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] justify-items-start gap-1.5">
           {mostPlayedItems.map(item => (
             <li
               key={item.key}
-              className={`flex h-20 w-full items-center gap-3 rounded-lg border p-3 shadow-sm ${rankStyles[Math.min(item.rank - 1, rankStyles.length - 1)]}`}
+              className={`flex h-16 w-full items-center gap-2 rounded-md border p-2 shadow-sm ${rankStyles[Math.min(item.rank - 1, rankStyles.length - 1)]}`}
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-sm font-bold text-gray-800 dark:bg-black/20 dark:text-white">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-bold text-gray-800 dark:bg-black/20 dark:text-white">
                 #{item.rank}
               </span>
               <div className="min-w-0 text-left">
-                <p className="truncate font-semibold">{item.title}</p>
-                <p className="truncate text-sm">{item.value}</p>
-                <p className="truncate text-xs text-gray-600 dark:text-gray-300">{item.detail}</p>
+                <p className="truncate text-sm font-semibold leading-tight">{item.title}</p>
+                <p className="truncate text-xs leading-tight">{item.value}</p>
               </div>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Most called suit</h2>
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold">Most called suit</h2>
         <RankingCards
           items={mostCalledColors.map(({ color, count }) => ({
             key: color,
@@ -226,32 +322,29 @@ export default function Post({
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Biggest win in a game</h2>
-          <RankingCards items={biggestWins} emptyMessage="No positive game scores recorded." />
-        </section>
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold">Least average starting bouts</h2>
+        <RankingCards
+          items={mostAdventurous}
+          emptyMessage="No recorded starting-bouts data for takers yet."
+        />
+      </section>
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold">Biggest loss in a game</h2>
-          <RankingCards items={biggestLosses} emptyMessage="No negative game scores recorded." />
-        </section>
-      </div>
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold">No bouts, no problem</h2>
+        <RankingCards
+          items={noBoutsTakers}
+          emptyMessage="No games with zero bouts at the start have been recorded."
+        />
+      </section>
 
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold">Most points by number of bouts</h2>
-        <div className="grid gap-5 lg:grid-cols-2">
-          {mostPointsByBouts.map(({ nBouts, games: rankedGames }) => (
-            <section key={nBouts} className="space-y-3">
-              <h3 className="font-medium">With {nBouts} bouts</h3>
-              <RankingCards
-                items={rankedGames}
-                emptyMessage={`No games with ${nBouts} bouts recorded.`}
-                stacked
-              />
-            </section>
-          ))}
-        </div>
+      <section className="space-y-2">
+        <h2 className="text-base font-semibold">No bouts, let&apos;s go big</h2>
+        <RankingCards
+          items={biggestNoBoutsWins}
+          emptyMessage="No positive taker scores from games with zero bouts at the start."
+          stacked
+        />
       </section>
     </div>
   );
