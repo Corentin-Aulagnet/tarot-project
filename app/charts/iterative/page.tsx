@@ -1,25 +1,6 @@
 
-import "../../globals.css";
-import { aggregateIterativeScores } from "@/lib/scoreUtils";
-import { createClient } from "@/utils/supabase/client";
-import Post from "./post";
-import { getLastPlayers } from "@/lib/gameUtils";
-export const dynamic = "force-dynamic";
-export default async function Page() {
+import { redirect } from "next/navigation";
 
-const supabase = createClient();
-  const { data: games }  = await supabase.from("Games").select("*").order("created_at", { ascending: false });
-  const { data: players }  = await supabase.from("Players").select("*").order("Name", { ascending: true });
-  if (!games || !players) {
-    return <div>Failed to load data</div>
-  }
-  const recentPlayers = getLastPlayers(games, players, 20) ?? [];
-  return (<main className="p-6">
-    <h1 className="font-bold mb-4"style={{ fontFamily: "Arial, sans-serif" }}>Iterative Total Line Chart</h1>
-    <Post
-      data={aggregateIterativeScores(games, players)}
-      players={players}
-      recentPlayers={recentPlayers}
-    />
-  </main>);
+export default function Page() {
+  redirect("/history");
 }

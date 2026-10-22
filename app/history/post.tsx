@@ -22,9 +22,12 @@ export default function Post({games, players}: { games: Games[] | null, players:
   const gamesInMonth = filterInMonth(games, monthIndex);
   const recentPlayers = getLastPlayers(games, players, 20) ?? [];
   const displayedPlayers = showAllPlayers ? players : recentPlayers;
-   const chartData = aggregateIterativeScores(gamesInMonth, players)
+  const chartData = aggregateIterativeScores(gamesInMonth, players);
+  const allGamesChartData = aggregateIterativeScores(games, players);
     return (<div>
-    <div className= "not-landscape:h-100 landscape:h-70" >
+    <h1 className="mb-2 text-xl font-extrabold">Month Data</h1>
+    <div className="mb-8">
+    <div className="h-[min(60vh,32rem)] min-h-64 w-full sm:h-[min(65vh,38rem)]">
       <div className="mb-2 flex items-center justify-between">
         <select
           value={monthIndex}
@@ -47,8 +50,18 @@ export default function Post({games, players}: { games: Games[] | null, players:
       </div>
     <LineChart data={chartData} players={displayedPlayers} lastPlayers={displayedPlayers}  zoomIndex={10}/>
 </div>
-<h1 className="font-extrabold">Games for {new Date(0, monthIndex).toLocaleString('default', { month: 'long' })}</h1>
+</div>
+<h1 className="mb-2 font-extrabold">Games for {new Date(0, monthIndex).toLocaleString('default', { month: 'long' })}</h1>
     <GamesTable games={gamesInMonth} players={displayedPlayers} table={buildGamePlayerTotals(gamesInMonth, players)} totals={aggregateTotalScores(gamesInMonth, players)}/>
-    <h1 className="font-extrabold">All Games</h1>
+    <h1 className="mb-2 mt-6 text-xl font-extrabold">All Time Data</h1>
+    <div className="mb-6 h-[min(60vh,32rem)] min-h-64 w-full sm:h-[min(65vh,38rem)]">
+      <LineChart
+        data={allGamesChartData}
+        players={displayedPlayers}
+        lastPlayers={displayedPlayers}
+        zoomIndex={10}
+      />
+    </div>
+    <h1 className="mb-2 font-extrabold">All Games</h1>
     <GamesTable games={games} players={displayedPlayers} table={table} totals={totals}/>
     </div>)}

@@ -30,6 +30,7 @@
 import { Players } from '@/utils/supabase/types';
 import { JSX, useMemo, useState } from 'react';
 import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDataParam, ResponsiveContainer } from 'recharts';
+import { getDefaultPlayerColor } from "@/lib/playerColors";
 
 
 /**
@@ -43,12 +44,8 @@ import { LineChart, Line, YAxis, CartesianGrid, Tooltip, Legend, MouseHandlerDat
  * @returns HSL color string, e.g., \"hsl(90, 65%, 55%)\"
  */
 export function getColorFromId(id: string,players: Players[]) {
-  const colors = generateColors(players.length);
-
-    const colorMap = Object.fromEntries(
-  players.map((player, index) => [player.id, colors[index]])
-);
-    return colorMap[id] || 'hsl(0, 0%, 50%)'; // default to gray if id not found
+  const player = players.find(candidate => candidate.id === id);
+  return player ? getDefaultPlayerColor(player, players) : 'hsl(0, 0%, 70%)';
 }
 
 /**

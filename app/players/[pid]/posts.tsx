@@ -2,6 +2,7 @@
 import { Games,Players } from "@/utils/supabase/types";
 import { aggregateIterativeScores,buildGamePlayerTotals } from "@/lib/scoreUtils";
 import { getPlayerStatistics } from "@/lib/playerStats";
+import { getAvailablePlayerColors } from "@/lib/playerColors";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
 import { supabase } from "@/utils/supabase/client";
 import dynamic from "next/dynamic";
@@ -16,10 +17,16 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
     const [isEditingName, setIsEditingName] = useState(false);
     const [editingName, setEditingName] = useState(player.Name);
     const [isSavingName, setIsSavingName] = useState(false);
+    const [isSavingColor, setIsSavingColor] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const allGames = games ?? [];
     const pointsPerGame = buildGamePlayerTotals(allGames, [currentPlayer]);
     const stats = getPlayerStatistics(currentPlayer, allGames, players, pointsPerGame);
+    const availableColors = getAvailablePlayerColors(players, currentPlayer.id);
+    const selectableColors = currentPlayer.preferred_color
+        && !availableColors.some(color => color.value === currentPlayer.preferred_color)
+        ? [{ name: "Current color", value: currentPlayer.preferred_color }, ...availableColors]
+        : availableColors;
     const handleSaveName = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const trimmedName = editingName.trim();
@@ -44,6 +51,27 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
 
         setCurrentPlayer({ ...currentPlayer, Name: trimmedName });
         setIsEditingName(false);
+    };
+
+    const handleColorChange = async (color: string) => {
+        if (!color || color === currentPlayer.preferred_color) return;
+        setError(null);
+        setIsSavingColor(true);
+        const { error: updateError } = await supabase
+            .from("Players")
+            .update({ preferred_color: color })
+            .eq("id", currentPlayer.id);
+        setIsSavingColor(false);
+
+        if (updateError) {
+            console.error("Error updating preferred player color:", updateError);
+            setError(updateError.code === "23505"
+                ? "That color is already in use. Please choose another."
+                : "Could not update player color. Please try again.");
+            return;
+        }
+
+        setCurrentPlayer({ ...currentPlayer, preferred_color: color });
     };
 
     return (<div>
@@ -93,6 +121,30 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
                     </button>
                 </>
             )}
+            <div className="flex items-center gap-2">
+                <label htmlFor="player-preferred-color" className="text-sm font-medium">
+                    Preferred color
+                </label>
+                <select
+                    id="player-preferred-color"
+                    value={currentPlayer.preferred_color ?? ""}
+                    onChange={event => void handleColorChange(event.target.value)}
+                    disabled={isSavingColor}
+                    className="rounded border border-gray-300 px-2 py-1.5 disabled:opacity-50"
+                >
+                    {!currentPlayer.preferred_color && (
+                        <option value="" disabled>Select a color</option>
+                    )}
+                    {selectableColors.map(color => (
+                        <option key={color.value} value={color.value}>{color.name}</option>
+                    ))}
+                </select>
+                <span
+                    aria-label="Current preferred color"
+                    className="size-6 rounded-full border border-gray-400"
+                    style={{ backgroundColor: currentPlayer.preferred_color ?? "#cccccc" }}
+                />
+            </div>
         </div>
         {error && <p role="alert" className="mb-3 text-sm text-red-600">{error}</p>}
         <section className="mb-6 space-y-2">

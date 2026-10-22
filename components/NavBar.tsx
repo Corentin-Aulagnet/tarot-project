@@ -3,7 +3,7 @@
  * Navigation header for the entire application.
  * 
  * Features:
- * - Desktop links: Home | New Game | Players | Charts
+ * - Desktop links: Home | New Game | Players | History
  * - Mobile menu: Hamburger button (via Headless UI Disclosure)
  * - Current route highlighting: Active link shows bold white text
  * - Uses Heroicons for menu icons (Bars3Icon for open, XMarkIcon for close)
@@ -12,7 +12,7 @@
  * - Home (/) → Dashboard with leaderboard and charts
  * - New Game (/games/new) → Form to create game
  * - Players (/players/new) → Create and manage players
- * - Charts (/charts/iterative) → Full-page score progression chart
+ * - History (/history) → Game history, monthly chart, and all-games score chart
  */
 
 "use client";
@@ -25,7 +25,6 @@ const navigation = [
   { name: 'Home', href: '/', current: true },
   { name: 'New Game', href: '/games/new', current: false },
   { name: 'Players', href: '/players/new', current: false },
-  {name: 'Charts', href: '/charts/iterative', current: false},
   {name: 'Statistics', href: '/leaderboards', current: false},
   {name: 'History', href: '/history', current: false}
 ]

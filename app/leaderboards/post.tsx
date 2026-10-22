@@ -6,19 +6,28 @@ import {
   getPlayersByMostPlayed,
 } from "@/lib/scoreUtils";
 import { Games, Players } from "@/utils/supabase/types";
+import SuitSymbol from "@/components/SuitSymbol";
 
 type RankingItem = {
   key: string;
   title: string;
   value: string;
   detail?: string;
+  suit?: string;
 };
 
 const rankStyles = [
   "border-yellow-400 bg-yellow-100 dark:border-yellow-600 dark:bg-yellow-900/40",
-  "border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800",
+  "border-slate-200 bg-gray-600 text-white dark:border-slate-300 dark:bg-gray-700",
   "border-orange-400 bg-orange-100 dark:border-orange-700 dark:bg-orange-900/40",
   "border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800",
+];
+
+const rankingDetailStyles = [
+  "text-gray-600 dark:text-gray-300",
+  "text-gray-100 dark:text-gray-200",
+  "text-gray-600 dark:text-gray-300",
+  "text-gray-600 dark:text-gray-300",
 ];
 
 function RankingCards({
@@ -35,20 +44,19 @@ function RankingCards({
   }
 
   return (
-    <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] justify-items-start gap-1.5">
+    <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,7rem),1fr))] justify-items-start gap-1">
       {items.map((item, index) => (
         <li
           key={item.key}
-          className={`flex ${stacked ? "min-h-16" : "h-16"} w-full items-center gap-2 rounded-md border p-2 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
+          className={`flex ${stacked ? "min-h-14" : "h-14"} w-full items-center gap-1.5 rounded-md border p-1.5 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-bold text-gray-800 dark:bg-black/20 dark:text-white">
-            #{index + 1}
-          </span>
           <div className="min-w-0 flex-1 text-left">
-            <p className={stacked ? "whitespace-pre-line break-words text-sm font-semibold leading-tight" : "truncate text-sm font-semibold leading-tight"}>{item.title}</p>
+            <p className={stacked ? "whitespace-pre-line break-words text-sm font-semibold leading-tight" : "truncate text-sm font-semibold leading-tight"}>
+              {item.suit ? <SuitSymbol suit={item.suit} /> : item.title}
+            </p>
             <p className={stacked ? "break-words text-xs leading-tight" : "truncate text-xs leading-tight"}>{item.value}</p>
             {item.detail && (
-              <p className={stacked ? "whitespace-pre-line break-words text-[11px] leading-tight text-gray-600 dark:text-gray-300" : "truncate text-[11px] leading-tight text-gray-600 dark:text-gray-300"}>
+              <p className={`${stacked ? "whitespace-pre-line break-words" : "truncate"} text-[10px] leading-tight ${rankingDetailStyles[Math.min(index, rankingDetailStyles.length - 1)]}`}>
                 {item.detail}
               </p>
             )}
@@ -231,28 +239,27 @@ export default function Post({
       detail: `${game.points_att} attack points\n${formatGameDate(game.created_at)}`,
     }));
 
-  const mostPlayedItems = topPlayedPlayers.map((player, index) => ({
+  const mostPlayedItems = topPlayedPlayers.map(player => ({
     key: player.id,
     title: player.Name,
     value: `${playerGameCount[player.id] ?? 0} games`,
-    rank: index + 1,
   }));
 
   return (
-    <div className="space-y-5 p-3 sm:p-4">
+    <div className="space-y-4 p-2 sm:p-3">
       <h1 className="font-bold" style={{ fontFamily: "Arial, sans-serif" }}>
         Statistics
       </h1>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
-        <section className="space-y-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-3">
+        <section className="space-y-1.5">
           <h2 className="text-base font-semibold">
             Best of {monthName} <span className="text-sm font-normal">(points won)</span>
           </h2>
           <RankingCards items={bestOfMonth} emptyMessage="No games recorded this month." />
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-1.5">
           <h2 className="text-base font-semibold">
             Worst of {monthName} <span className="text-sm font-normal">(points lost)</span>
           </h2>
@@ -260,23 +267,23 @@ export default function Post({
         </section>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
-        <section className="space-y-2">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-3">
+        <section className="space-y-1.5">
           <h2 className="text-base font-semibold">Biggest win in a game</h2>
           <RankingCards items={biggestWins} emptyMessage="No positive game scores recorded." />
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-1.5">
           <h2 className="text-base font-semibold">Biggest loss in a game</h2>
           <RankingCards items={biggestLosses} emptyMessage="No negative game scores recorded." />
         </section>
       </div>
 
-      <section className="space-y-3">
+      <section className="space-y-2">
         <h2 className="text-base font-semibold">Most points by number of bouts</h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-3">
           {mostPointsByBouts.map(({ nBouts, games: rankedGames }) => (
-            <section key={nBouts} className="space-y-2">
+            <section key={nBouts} className="space-y-1.5">
               <h3 className="text-sm font-medium">With {nBouts} bouts</h3>
               <RankingCards
                 items={rankedGames}
@@ -288,49 +295,47 @@ export default function Post({
         </div>
       </section>
 
-      <section className="space-y-2">
+      <section className="space-y-1.5">
         <h2 className="text-base font-semibold">
-          Most Played Players <span className="text-sm font-normal">(of {games.length} games)</span>
+          Most games played <span className="text-sm font-normal">(of {games.length} games)</span>
         </h2>
-        <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] justify-items-start gap-1.5">
-          {mostPlayedItems.map(item => (
+        <ol className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,7rem),1fr))] justify-items-start gap-1">
+          {mostPlayedItems.map((item, index) => (
             <li
               key={item.key}
-              className={`flex h-16 w-full items-center gap-2 rounded-md border p-2 shadow-sm ${rankStyles[Math.min(item.rank - 1, rankStyles.length - 1)]}`}
+              className={`flex h-14 w-full items-center gap-1.5 rounded-md border p-1.5 shadow-sm ${rankStyles[Math.min(index, rankStyles.length - 1)]}`}
             >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-xs font-bold text-gray-800 dark:bg-black/20 dark:text-white">
-                #{item.rank}
-              </span>
               <div className="min-w-0 text-left">
                 <p className="truncate text-sm font-semibold leading-tight">{item.title}</p>
-                <p className="truncate text-xs leading-tight">{item.value}</p>
+                <p className={`truncate text-xs leading-tight ${rankingDetailStyles[Math.min(index, rankingDetailStyles.length - 1)]}`}>{item.value}</p>
               </div>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="space-y-2">
+      <section className="space-y-1.5">
         <h2 className="text-base font-semibold">Most called suit</h2>
         <RankingCards
           items={mostCalledColors.map(({ color, count }) => ({
             key: color,
             title: color,
+            suit: color,
             value: `${count} ${count === 1 ? "game" : "games"}`,
           }))}
           emptyMessage="No called suits have been recorded yet."
         />
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-base font-semibold">Least average starting bouts</h2>
+      <section className="space-y-1.5">
+        <h2 className="text-base font-semibold">Least starting bouts</h2>
         <RankingCards
           items={mostAdventurous}
           emptyMessage="No recorded starting-bouts data for takers yet."
         />
       </section>
 
-      <section className="space-y-2">
+      <section className="space-y-1.5">
         <h2 className="text-base font-semibold">No bouts, no problem</h2>
         <RankingCards
           items={noBoutsTakers}

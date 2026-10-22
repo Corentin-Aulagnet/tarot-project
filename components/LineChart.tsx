@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { Line } from "react-chartjs-2";
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { getDefaultPlayerColor } from "@/lib/playerColors";
 
 ChartJS.register(
   CategoryScale,
@@ -46,7 +47,7 @@ export function aggregateScoresToChartData(
     datasets: players.map((player) => ({
       label: player.Name,
       data: aggregatedScores.map((row) => row[player.Name] ?? null),
-      borderColor: colors?.[player.id] || `hsl(${Math.random() * 360}, 65%, 55%)`,
+      borderColor: colors?.[player.id] || getDefaultPlayerColor(player, players),
       tension: 0.4,
       fill: false,
       hidden:lastPlayers.some((p) => p.id === player.id) ? false : true, // Hide lines for players not in lastPlayers

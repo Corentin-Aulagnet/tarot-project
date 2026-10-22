@@ -7,6 +7,7 @@ import { Enums,Players,Games } from "@/utils/supabase/types";
 import { supabase } from "@/utils/supabase/client";
 import { useEffect } from "react";
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
+import SuitSymbol from "@/components/SuitSymbol";
 
 export default function Posts({ initialGame }:{ initialGame: Games }) {
   const [game, setGame] = useState(initialGame);
@@ -195,18 +196,18 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
             </div>
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <h1 className="font-medium">Select Called Color</h1>
-            <button type="button" className={`w-10 h-10
-    flex items-center justify-center
-    rounded-full text-red-500 ${call_color === "♥" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♥')}>♥</button>
-            <button type="button" className={`w-10 h-10
-    flex items-center justify-center
-    rounded-full text-red-500 ${call_color === "♦" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♦')}>♦</button>
-            <button type="button" className={`w-10 h-10
-    flex items-center justify-center
-    rounded-full dark:text-white text-black ${call_color === "♣" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♣')}>♣</button>
-            <button type="button" className={`w-10 h-10
-    flex items-center justify-center
-    rounded-full dark:text-white text-black ${call_color === "♠" ? "bg-gray-300" : ""}`} onClick={() => handleChangeCallColor('♠')}>♠</button>
+            {(["♥", "♦", "♣", "♠"] as const).map(suit => (
+              <button
+                key={suit}
+                type="button"
+                aria-label={`Select ${suit} suit`}
+                aria-pressed={call_color === suit}
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${call_color === suit ? "bg-gray-300" : ""}`}
+                onClick={() => handleChangeCallColor(suit)}
+              >
+                <SuitSymbol suit={suit} />
+              </button>
+            ))}
             
             </div>
             <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">

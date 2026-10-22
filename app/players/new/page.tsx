@@ -4,6 +4,7 @@ import {supabase} from "@/utils/supabase/client";
 import { Games, Players } from "@/utils/supabase/types";
 import { buildGamePlayerTotals } from "@/lib/scoreUtils";
 import { getPlayerStatistics } from "@/lib/playerStats";
+import { getAvailablePlayerColors } from "@/lib/playerColors";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -41,6 +42,7 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<Players[]>([]);
   const [games, setGames] = useState<Games[]>([]);
   const [name, setName] = useState("");
+  const [preferredColor, setPreferredColor] = useState("");
   const [sortField, setSortField] = useState<PlayerSortField>("name");
   const [sortAscending, setSortAscending] = useState(true);
   const [showAllPlayers, setShowAllPlayers] = useState(false);
@@ -108,22 +110,32 @@ export default function PlayersPage() {
     setError(null);
     setMessage(null);
     setIsSaving(true);
+    const selectedColor = preferredColor || availableColors[0]?.value;
+    if (!selectedColor) {
+      setIsSaving(false);
+      setError("No unused player colors are available.");
+      return;
+    }
     const { error: insertError } = await supabase
       .from("Players")
-      .insert({ Name: trimmedName });
+      .insert({ Name: trimmedName, preferred_color: selectedColor });
     setIsSaving(false);
 
     if (insertError) {
       console.error("Error creating player:", insertError);
-      setError("Could not create player. Please try again.");
+      setError(insertError.code === "23505"
+        ? "That color is already in use. Please choose another."
+        : "Could not create player. Please try again.");
       return;
     }
 
     setName("");
+    setPreferredColor("");
     setMessage("Player added.");
     await refreshPlayers();
   };
 
+  const availableColors = getAvailablePlayerColors(players);
   const gamePlayerTotals = buildGamePlayerTotals(games, players);
   const playersWithStats = players.map(player => ({
     player,
@@ -172,12 +184,33 @@ export default function PlayersPage() {
             className="w-[20ch] max-w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="new-player-color" className="font-medium">Color</label>
+          <select
+            id="new-player-color"
+            value={preferredColor || availableColors[0]?.value || ""}
+            onChange={event => setPreferredColor(event.target.value)}
+            disabled={availableColors.length === 0}
+            className="rounded border border-gray-300 px-2 py-2"
+          >
+            {availableColors.map(color => (
+              <option key={color.value} value={color.value}>{color.name}</option>
+            ))}
+          </select>
+          {preferredColor && (
+            <span
+              aria-label="Selected player color"
+              className="size-6 rounded-full border border-gray-400"
+              style={{ backgroundColor: preferredColor }}
+            />
+          )}
+        </div>
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={isSaving || availableColors.length === 0}
           className="rounded bg-blue-500 px-4 py-2 text-white transition hover:bg-blue-600 disabled:opacity-50"
         >
-          {isSaving ? "Adding..." : "Add"}
+          {availableColors.length === 0 ? "No colors available" : isSaving ? "Adding..." : "Add"}
         </button>
       </form>
 
