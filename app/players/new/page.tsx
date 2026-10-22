@@ -3,7 +3,7 @@ import "../../globals.css";
 import {supabase} from "@/utils/supabase/client";
 import { Games, Players } from "@/utils/supabase/types";
 import { buildGamePlayerTotals } from "@/lib/scoreUtils";
-import { getPlayerStatistics } from "@/lib/playerStats";
+import { getAllPlayerStatistics } from "@/lib/playerStats";
 import {
   getAvailablePlayerColors,
   getDefaultPlayerColor,
@@ -12,7 +12,7 @@ import {
 import PlayerColorPicker from "@/components/PlayerColorPicker";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type PlayerSortField =
   | "name"
@@ -162,22 +162,20 @@ export default function PlayersPage() {
 
   const availableColors = getAvailablePlayerColors(players);
   const defaultColor = getUnassignedPlayerColor(players);
-  const gamePlayerTotals = buildGamePlayerTotals(games, players);
-  const playersWithStats = players.map(player => ({
-    player,
-    stats: getPlayerStatistics(player, games, players, gamePlayerTotals),
-  }));
-  const recentGameIds = new Set(
+  const gamePlayerTotals = useMemo(() => buildGamePlayerTotals(games), [games]);
+  const playersWithStats = useMemo(() => {
+    const allPlayerStatistics = getAllPlayerStatistics(players, games, gamePlayerTotals);
+    return players.map(player => ({
+      player,
+      stats: allPlayerStatistics[player.id],
+    }));
+  }, [gamePlayerTotals, games, players]);
+  const recentPlayerIds = useMemo(() => new Set(
     [...games]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 20)
-      .map(game => game.id)
-  );
-  const recentPlayerIds = new Set(
-    games
-      .filter(game => recentGameIds.has(game.id))
       .flatMap(game => game.players_uid)
-  );
+  ), [games]);
   const listedPlayers = showAllPlayers
     ? playersWithStats
     : playersWithStats.filter(({ player }) => recentPlayerIds.has(player.id));

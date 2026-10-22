@@ -22,7 +22,7 @@ export default function Posts({ player,games,players }:{ player: Players,games:G
     const [isSavingColor, setIsSavingColor] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const allGames = games ?? [];
-    const pointsPerGame = buildGamePlayerTotals(allGames, [currentPlayer]);
+    const pointsPerGame = buildGamePlayerTotals(allGames);
     const stats = getPlayerStatistics(currentPlayer, allGames, currentPlayers, pointsPerGame);
     const availableColors = getAvailablePlayerColors(currentPlayers, currentPlayer.id);
     const handleSaveName = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -94,7 +94,7 @@ export default function Post({
     game => new Date(game.created_at).getUTCMonth() === monthIndex
   );
   const monthlyScores = aggregateTotalScores(gamesInMonth, topPlayedPlayers);
-  const gamePlayerTotals = buildGamePlayerTotals(games, players);
+  const gamePlayerTotals = buildGamePlayerTotals(games);
   const playerNames = new Map(players.map(player => [player.id, player.Name]));
   const bestOfMonth = Object.entries(monthlyScores)
     .sort((a, b) => b[1] - a[1])

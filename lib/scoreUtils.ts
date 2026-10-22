@@ -73,7 +73,7 @@ export type GameResult={
 
 /**
  * =============================================================================
- * getPointsForGame(game, players)
+ * getPointsForGame(game)
  * =============================================================================
  * 
  * THE CORE SCORING FUNCTION: Calculates all player scores for a single game.
@@ -192,7 +192,7 @@ export type GameResult={
  * 
  * =============================================================================
  */
-function getPointsForGame(game:Games, players:Players[]) {
+function getPointsForGame(game:Games) {
   const result = {} as Record<Players['id'], number>
   
   // ─────────────────────────────────────────────────────────
@@ -321,13 +321,12 @@ function getPointsForGame(game:Games, players:Players[]) {
   return result;
 }
 /**
- * buildGamePlayerTotals(games, players)
+ * buildGamePlayerTotals(games)
  * 
  * Calculates per-player scores for each provided game.
  * Used to populate the game results table (rows = games, columns = players).
  * 
  * @param games - All games from database
- * @param players - All players from database
  * @returns Record<GameID, Record<PlayerID, Score>>
  * 
  * Example:
@@ -340,16 +339,11 @@ function getPointsForGame(game:Games, players:Players[]) {
  * 
  * This data powers the GameTable component's row display.
  */
-export function buildGamePlayerTotals(games:Games[], players:Players[]) {
+export function buildGamePlayerTotals(games:Games[]) {
   const result = {}as Record<Games['id'], Record<Players['id'],number>>
 
-  // For each game, calculate the score distribution
   games.forEach(g => {
-    const gameResult = games.find(gr => gr.id === g.id);
-    if (!gameResult) return;
-
-    const points = getPointsForGame(g, players);
-    result[g.id] = points;
+    result[g.id] = getPointsForGame(g);
   });
 
   return result
@@ -362,7 +356,6 @@ export function buildGamePlayerTotals(games:Games[], players:Players[]) {
  * Used to display the leaderboard totals row at the top of results.
  * 
  * @param games - All games from database
- * @param players - All players from database
  * @returns Record<PlayerID, TotalScore>
  * 
  * Example:
@@ -383,9 +376,7 @@ export function aggregateTotalScores(games:Games[], players:Players[]) {
   
   // Sum scores across all games
   games.forEach(g => {
-    const gameResult = games.find(gr => gr.id === g.id);
-    if (!gameResult) return;  
-    const points = getPointsForGame(g, players);
+    const points = getPointsForGame(g);
     players.forEach(p => {
       if(points[p.id]!==undefined){
         result[p.id] += points[p.id]
@@ -394,6 +385,24 @@ export function aggregateTotalScores(games:Games[], players:Players[]) {
   })
   return result;
 }
+
+export function aggregateTotalsFromGamePlayerTotals(
+  games: Games[],
+  players: Players[],
+  gamePlayerTotals: Record<Games["id"], Record<Players["id"], number>>
+) {
+  const result = {} as Record<Players["id"], number>;
+  players.forEach(player => {
+    result[player.id] = 0;
+  });
+  games.forEach(game => {
+    Object.entries(gamePlayerTotals[game.id] ?? {}).forEach(([playerId, score]) => {
+      if (result[playerId] !== undefined) result[playerId] += score;
+    });
+  });
+  return result;
+}
+
 export function getMonthScores(games:Games[],players:Players[],month:string):Record<Players['id'], number>{
   const result = {} as Record<Players['id'], number>
   // Initialize each player's total to 0
@@ -406,9 +415,7 @@ export function getMonthScores(games:Games[],players:Players[],month:string):Rec
     return gameMonth === month;
   });
   gamesInMonth.forEach(g => {
-    const gameResult = games.find(gr => gr.id === g.id);
-    if (!gameResult) return;  
-    const points = getPointsForGame(g, players);
+    const points = getPointsForGame(g);
     players.forEach(p => {
       if(points[p.id]!==undefined){
         result[p.id] += points[p.id]
@@ -423,15 +430,13 @@ export function getPlayersByMostPlayed(games:Games[],players:Players[]):[Record<
   players.forEach(p => playerGameCount[p.id] = 0)
   // Count games for each player
   games.forEach(g => {
-    const gameResult = games.find(gr => gr.id === g.id);
-    if (!gameResult) return;  
     g.players_uid.forEach(playerId => {
       if(playerGameCount[playerId]!==undefined){
         playerGameCount[playerId] += 1
       }
     })  
   })
-  const result:Players[] = players.sort((a,b) => playerGameCount[b.id] - playerGameCount[a.id]);
+  const result:Players[] = [...players].sort((a,b) => playerGameCount[b.id] - playerGameCount[a.id]);
   return [playerGameCount, result];
 }
 /**
@@ -475,9 +480,7 @@ export function aggregateIterativeScores(games:Games[], players:Players[]) {
 
   // For each game (in chronological order), calculate cumulative scores
   sortedGames.forEach(g => {
-    const gameResult = games.find(gr => gr.id === g.id);
-    if (!gameResult) return;
-    const points = getPointsForGame(g, players);
+    const points = getPointsForGame(g);
     
     // For each player: add new game score to previous cumulative total
     players.forEach(p => {

@@ -32,6 +32,31 @@ select option {
   background-color: #f9fafb;
 }
 
+.new-game-form select {
+  color: #f9fafb;
+  background-color: #171717;
+  border-color: #6b7280;
+  color-scheme: dark;
+}
+
+.new-game-form select option {
+  color: #f9fafb;
+  background-color: #171717;
+}
+
+.new-game-form select[name="n_bouts_hand_start"] option[value=""],
+.new-game-form select[name="n_bouts_dog"] option[value=""],
+.new-game-form select[name="n_bouts_called"] option[value=""],
+.new-game-form select[aria-label="Called Suit"] option[value=""] {
+  color: #9ca3af;
+}
+
+.new-game-form select:focus {
+  border-color: #9ca3af;
+  outline: 1px solid #9ca3af;
+  outline-offset: 1px;
+}
+
 .game-results-scroll {
   max-height: 16rem;
 }

@@ -47,6 +47,8 @@ export type Database = {
           misere_type: Database["public"]["Enums"]["Misere"] | null
           misere_type_arr: Database["public"]["Enums"]["Misere"][] | null
           n_bouts: number
+          n_bouts_called: number | null
+          n_bouts_dog: number | null
           n_bouts_hand_start: number | null
           petit_au_bout: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id: string | null
@@ -68,6 +70,8 @@ export type Database = {
           misere_type?: Database["public"]["Enums"]["Misere"] | null
           misere_type_arr?: Database["public"]["Enums"]["Misere"][] | null
           n_bouts: number
+          n_bouts_called?: number | null
+          n_bouts_dog?: number | null
           n_bouts_hand_start?: number | null
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null
@@ -89,6 +93,8 @@ export type Database = {
           misere_type?: Database["public"]["Enums"]["Misere"] | null
           misere_type_arr?: Database["public"]["Enums"]["Misere"][] | null
           n_bouts?: number
+          n_bouts_called?: number | null
+          n_bouts_dog?: number | null
           n_bouts_hand_start?: number | null
           petit_au_bout?: Database["public"]["Enums"]["Petit_au_bout"] | null
           petit_au_bout_player_id?: string | null

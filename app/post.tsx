@@ -1,6 +1,10 @@
 "use client";
-import { useState } from "react";
-import { aggregateIterativeScores, aggregateTotalScores, buildGamePlayerTotals } from "@/lib/scoreUtils"
+import { useMemo, useState } from "react";
+import {
+  aggregateIterativeScores,
+  aggregateTotalsFromGamePlayerTotals,
+  buildGamePlayerTotals,
+} from "@/lib/scoreUtils"
 import {GamesTable} from "@/components/GameTable/GameTable"
 import { Games, Players } from "@/utils/supabase/types";
 import dynamic from 'next/dynamic';
@@ -9,29 +13,41 @@ const LineChart = dynamic(() => import("@/components/LineChart"), {
   ssr: false, // Disable server-side rendering
 });
 
+const EMPTY_GAMES: Games[] = [];
+const EMPTY_PLAYERS: Players[] = [];
+
 export default function Post({games, players}: { games: Games[] | null, players: Players[] | null }) {
   const [monthIndex, setMonthIndex] = useState(new Date().getUTCMonth());
   const [showAllPlayers, setShowAllPlayers] = useState(false);
+  const allGames = games ?? EMPTY_GAMES;
+  const allPlayers = players ?? EMPTY_PLAYERS;
+
+  const recentPlayers = useMemo(() => getLastPlayers(allGames, allPlayers, 20) ?? [], [allGames, allPlayers]);
+  const displayedPlayers = showAllPlayers ? allPlayers : recentPlayers;
+  const table = useMemo(() => buildGamePlayerTotals(allGames), [allGames]);
+  const totals = useMemo(
+    () => aggregateTotalsFromGamePlayerTotals(allGames, allPlayers, table),
+    [allGames, allPlayers, table]
+  );
+  const gamesInMonth = useMemo(() => filterInMonth(allGames, monthIndex), [allGames, monthIndex]);
+  const chartData = useMemo(() => aggregateIterativeScores(gamesInMonth, allPlayers), [gamesInMonth, allPlayers]);
+  const allGamesChartData = useMemo(() => aggregateIterativeScores(allGames, allPlayers), [allGames, allPlayers]);
+  const monthlyTable = useMemo(() => buildGamePlayerTotals(gamesInMonth), [gamesInMonth]);
+  const monthlyTotals = useMemo(
+    () => aggregateTotalsFromGamePlayerTotals(gamesInMonth, allPlayers, monthlyTable),
+    [gamesInMonth, monthlyTable, allPlayers]
+  );
+  const monthName = new Date(0, monthIndex).toLocaleString("default", { month: "long" });
 
   if (!games || !players) {
     return <div>Failed to load data</div>
   }
 
-  const recentPlayers = getLastPlayers(games, players, 20) ?? [];
-  const displayedPlayers = showAllPlayers ? players : recentPlayers;
-  const table = buildGamePlayerTotals(games, players)
-  const totals = aggregateTotalScores(games, players)
- 
-  const gamesInMonth = filterInMonth(games, monthIndex);
-  const chartData = aggregateIterativeScores(gamesInMonth, players);
-  const allGamesChartData = aggregateIterativeScores(games, players);
-  const monthName = new Date(0, monthIndex).toLocaleString("default", { month: "long" });
-
   return (
     <div className="space-y-8">
       <section className="pb-4">
         <h1 className="mb-2 text-xl font-extrabold">Month Data</h1>
-        <div className="h-[min(60vh,32rem)] min-h-64 w-full sm:h-[min(65vh,38rem)]">
+        <div className="h-[min(42vh,22.4rem)] min-h-[11.2rem] w-full sm:h-[min(45.5vh,26.6rem)]">
           <div className="mb-2 flex items-center justify-between gap-2">
             <label htmlFor="month-select" className="sr-only">Select month</label>
             <select
@@ -67,8 +83,8 @@ export default function Post({games, players}: { games: Games[] | null, players:
         <GamesTable
           games={gamesInMonth}
           players={displayedPlayers}
-          table={buildGamePlayerTotals(gamesInMonth, players)}
-          totals={aggregateTotalScores(gamesInMonth, players)}
+          table={monthlyTable}
+          totals={monthlyTotals}
           recentPlayers={!showAllPlayers}
         />
       </section>
@@ -83,7 +99,7 @@ export default function Post({games, players}: { games: Games[] | null, players:
             {showAllPlayers ? "Show recent players" : "Show all players"}
           </button>
         </div>
-        <div className="h-[min(60vh,32rem)] min-h-64 w-full sm:h-[min(65vh,38rem)]">
+        <div className="h-[min(42vh,22.4rem)] min-h-[11.2rem] w-full sm:h-[min(45.5vh,26.6rem)]">
           <LineChart
             data={allGamesChartData}
             players={displayedPlayers}

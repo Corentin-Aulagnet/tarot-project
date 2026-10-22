@@ -18,7 +18,19 @@ export default function Posts({ initialGame }:{ initialGame: Games }) {
       const [pointsAtt, setPointsAtt] = useState(initialGame.points_att || 0);
       const pointsDef = 91 - pointsAtt;
       const [nBouts, setNBouts] = useState(initialGame.n_bouts || 0);
+      const [nBoutsHandStart, setNBoutsHandStart] = useState(
+        initialGame.n_bouts_hand_start == null ? "" : String(initialGame.n_bouts_hand_start)
+      );
+      const [nBoutsDog, setNBoutsDog] = useState(
+        initialGame.n_bouts_dog == null ? "" : String(initialGame.n_bouts_dog)
+      );
+      const [nBoutsCalled, setNBoutsCalled] = useState(
+        initialGame.n_bouts_called == null ? "" : String(initialGame.n_bouts_called)
+      );
+      const [boutValidationError, setBoutValidationError] = useState<string | null>(null);
       const isValid = nBouts >= 0 && nBouts <= 3;
+      const isValidOptionalBout = (value: string) => value === ""
+        || (Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 3);
       const pointsToMake = nBouts === 0 ? 56 : nBouts === 1 ? 51 : nBouts === 2 ? 41 : 36;
 
       const [numberOfPoignee, setNumberOfPoignee] = useState(initialGame.poignee_player_id_arr ? initialGame.poignee_player_id_arr.length : 0);
@@ -139,6 +151,13 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
 
           const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               e.preventDefault();
+              if (!isValidOptionalBout(nBoutsHandStart)
+                || !isValidOptionalBout(nBoutsDog)
+                || !isValidOptionalBout(nBoutsCalled)) {
+                  setBoutValidationError("Bout values must be whole numbers from 0 to 3.");
+                  return;
+              }
+              setBoutValidationError(null);
               const res = await fetch("/api/update", {
                   method: "POST",
                   body: JSON.stringify({call_id: form.call_id,
@@ -157,7 +176,10 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
                             petit_au_bout:form.petit_au_bout || null,
                              points_att: pointsAtt,
                               n_bouts: nBouts,
-                               players_uid: selectedPlayers.map(p => p.id)}),
+                             n_bouts_hand_start: nBoutsHandStart === "" ? null : Number(nBoutsHandStart),
+                             n_bouts_dog: nBoutsDog === "" ? null : Number(nBoutsDog),
+                             n_bouts_called: nBoutsCalled === "" ? null : Number(nBoutsCalled),
+                              players_uid: selectedPlayers.map(p => p.id)}),
               });
               
               if (res.ok)
@@ -227,12 +249,33 @@ const [call_color, setCallColor] = useState<string>(initialGame.call_color || ""
             ))}
             </select>
             </div>
-            <div className="flex flex-row gap-4 border p-2 rounded border-gray-300 border-width:15px">
-            <h1 className="font-medium">Select Number of Bouts</h1>
-            <input name="n_bouts" value={nBouts} className={`border p-2 rounded ${
+            <div className="grid grid-cols-2 gap-3 rounded border border-gray-300 p-2 lg:grid-cols-4">
+            <label className="flex flex-col gap-1 font-medium">
+              Starting Bouts
+              <input name="n_bouts_hand_start" value={nBoutsHandStart} type="number" min={0} max={3} step={1}
+                className={`rounded border p-2 ${isValidOptionalBout(nBoutsHandStart) ? "border-gray-300" : "border-red-500"}`}
+                onChange={(e) => setNBoutsHandStart(e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1 font-medium">
+              Dog Bouts
+              <input name="n_bouts_dog" value={nBoutsDog} type="number" min={0} max={3} step={1}
+                className={`rounded border p-2 ${isValidOptionalBout(nBoutsDog) ? "border-gray-300" : "border-red-500"}`}
+                onChange={(e) => setNBoutsDog(e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1 font-medium">
+              Called Bouts
+              <input name="n_bouts_called" value={nBoutsCalled} type="number" min={0} max={3} step={1}
+                className={`rounded border p-2 ${isValidOptionalBout(nBoutsCalled) ? "border-gray-300" : "border-red-500"}`}
+                onChange={(e) => setNBoutsCalled(e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1 font-medium">
+              Won Bouts
+              <input name="n_bouts" value={nBouts} className={`rounded border p-2 ${
                 isValid ? "border-gray-300" : "border-red-500"
-                }`} type="number" min={0} max={3} placeholder="Bouts"  onBlur={handleChangeNBouts} onChange={handleChangeNBouts}  />
-                </div>
+                }`} type="number" min={0} max={3} step={1} placeholder="Bouts" onBlur={handleChangeNBouts} onChange={handleChangeNBouts} />
+            </label>
+            </div>
+            {boutValidationError && <p role="alert" className="text-red-600">{boutValidationError}</p>}
                 
                 <div className="flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">  
                 <h1 className="font-medium">Enter Points</h1>
