@@ -371,7 +371,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       )}
                     </span>
                     <input
-                      className="w-36 rounded border p-3 text-base"
+                      className="w-[5.5rem] rounded border px-2 py-2 text-base"
                       name="points_att"
                       type="number"
                       min={0}
@@ -393,7 +393,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       )}
                     </span>
                     <input
-                      className="w-36 rounded border p-3 text-base"
+                      className="w-[5.5rem] rounded border px-2 py-2 text-base"
                       name="points_def"
                       type="number"
                       min={0}
