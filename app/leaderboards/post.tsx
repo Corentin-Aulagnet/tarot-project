@@ -138,22 +138,27 @@ export default function Post({
       detail: formatGameDate(result.createdAt),
     }));
 
-  const mostPointsByBouts = [0, 1, 2].map(nBouts => ({
+  const mostPointsByBouts = [0, 1, 2, 3].map(nBouts => ({
     nBouts,
     games: [...games]
       .filter(game => game.n_bouts === nBouts)
-      .sort((a, b) => b.points_att - a.points_att || a.created_at.localeCompare(b.created_at))
+      .sort((a, b) => {
+        const takerScoreA = gamePlayerTotals[a.id]?.[a.taker_id] ?? 0;
+        const takerScoreB = gamePlayerTotals[b.id]?.[b.taker_id] ?? 0;
+        return takerScoreB - takerScoreA || a.created_at.localeCompare(b.created_at);
+      })
       .slice(0, 3)
       .map(game => {
         const takerName = playerNames.get(game.taker_id) ?? "Unknown player";
         const callerName = playerNames.get(game.call_id) ?? "Unknown player";
+        const takerScore = gamePlayerTotals[game.id]?.[game.taker_id] ?? 0;
         return {
           key: game.id,
           title: game.taker_id === game.call_id
             ? takerName
             : `${takerName} and ${callerName}`,
-          value: `${game.points_att} attack points`,
-          detail: formatGameDate(game.created_at),
+          value: `${takerScore > 0 ? "+" : ""}${takerScore} final score points`,
+          detail: `${game.points_att} attack points · ${formatGameDate(game.created_at)}`,
         };
       }),
   }));
