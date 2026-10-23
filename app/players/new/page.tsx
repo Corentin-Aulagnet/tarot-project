@@ -38,7 +38,7 @@ const playerSortOptions: { value: PlayerSortField; label: string }[] = [
   { value: "averageStartingBouts", label: "Bouts Start" },
   { value: "averageEndingBouts", label: "Bouts Won" },
   { value: "gamesTaken", label: "Taken" },
-  { value: "favoriteCalledPlayer", label: "Favourite called partner" },
+  { value: "favoriteCalledPlayer", label: "Most Calls to" },
   { value: "calledCount", label: "Called" },
   { value: "favoriteSuit", label: "Favourite suit" },
 ];
@@ -196,20 +196,20 @@ export default function PlayersPage() {
     <main className="p-6">
       <form className="flex flex-wrap items-center gap-2" onSubmit={handleCreatePlayer}>
         <div className="flex items-center gap-2">
-          <label htmlFor="name" className="font-medium">New player</label>
           <input
             type="text"
             id="name"
             name="name"
+            aria-label="New Player Name"
+            placeholder="New Player Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
             required
-            className="w-[20ch] max-w-full rounded border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-[20ch] max-w-full rounded border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-medium">Preferred color</span>
           <PlayerColorPicker
             color={preferredColor ?? defaultColor ?? "#6b7280"}
             availableColors={availableColors}
@@ -230,28 +230,28 @@ export default function PlayersPage() {
       {message && <p role="status" className="mt-4 text-green-700">{message}</p>}
 
       <section className="mt-8">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-lg font-semibold">
+        <div className="mb-3 flex flex-nowrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+            <h2 className="whitespace-nowrap text-sm font-semibold sm:text-lg">
               {showAllPlayers ? "All Players" : "Recent Players"}
             </h2>
             <button
               type="button"
               onClick={() => setShowAllPlayers(showAll => !showAll)}
-              className="rounded border border-gray-300 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="whitespace-nowrap rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100 dark:hover:bg-gray-800 sm:px-3 sm:py-2 sm:text-sm"
             >
               {showAllPlayers ? "Show recent" : "Show all"}
             </button>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="player-sort-field" className="text-sm font-medium">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <label htmlFor="player-sort-field" className="hidden text-sm font-medium sm:inline">
               Sort by
             </label>
             <select
               id="player-sort-field"
               value={sortField}
               onChange={event => setSortField(event.target.value as PlayerSortField)}
-              className="rounded border border-gray-300 px-3 py-2"
+              className="w-24 rounded border border-gray-300 px-2 py-1 text-xs sm:w-auto sm:px-3 sm:py-2 sm:text-sm"
             >
               {playerSortOptions.map(option => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -262,7 +262,7 @@ export default function PlayersPage() {
               onClick={() => setSortAscending(ascending => !ascending)}
               aria-label={sortAscending ? "Sort ascending" : "Sort descending"}
               title={sortAscending ? "Sort ascending" : "Sort descending"}
-              className="rounded border border-gray-300 px-3 py-2 text-lg leading-none hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="rounded border border-gray-300 px-2 py-1 text-lg leading-none hover:bg-gray-100 dark:hover:bg-gray-800 sm:px-3 sm:py-2"
             >
               {sortAscending ? "↑" : "↓"}
             </button>

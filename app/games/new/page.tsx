@@ -6,7 +6,7 @@
 "use client";
 import "../../globals.css";
 import { useRouter } from "next/navigation";
-import { Players,Enums} from "@/utils/supabase/types";
+import { Games, Players,Enums} from "@/utils/supabase/types";
 import {supabase} from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { PlusCircleIcon,MinusCircleIcon } from '@heroicons/react/24/outline'
@@ -14,7 +14,7 @@ import { getLastPlayers } from "@/lib/gameUtils";
 import { getDefaultPlayerColor } from "@/lib/playerColors";
 
 
-export default function NewGamePage() {
+export default function NewGamePage({ gameId }: { gameId?: string }) {
     const router = useRouter();
     
     const [players, setPlayers] = useState<Players[]>([]);
@@ -22,6 +22,7 @@ export default function NewGamePage() {
     const [showAllPlayers, setShowAllPlayers] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
+    const [editingGame, setEditingGame] = useState<Games | null>(null);
     const [players_uid,setSelectedPlayers] = useState<Players[]>([]);
     const [pointsAtt, setPointsAtt] = useState("");
     const pointsDef = pointsAtt === "" ? "" : String(91 - Number(pointsAtt));
@@ -61,14 +62,17 @@ export default function NewGamePage() {
     });
    
         useEffect(() => {
-            const loadPlayers = async () => {
-                const [playersResult, gamesResult] = await Promise.all([
+            const loadFormData = async () => {
+                const [playersResult, gamesResult, gameResult] = await Promise.all([
                     supabase.from("Players").select("*"),
                     supabase
                         .from("Games")
                         .select("players_uid, created_at")
                         .order("created_at", { ascending: false })
                         .limit(20),
+                    gameId
+                        ? supabase.from("Games").select("*").eq("id", gameId).single()
+                        : Promise.resolve({ data: null, error: null }),
                 ]);
 
                 if (playersResult.error) {
@@ -81,20 +85,55 @@ export default function NewGamePage() {
                     setLoadError("Could not load recent game history.");
                     return;
                 }
+                if (gameResult.error) {
+                    console.error("Error fetching game for editing:", gameResult.error);
+                    setLoadError("Could not load the selected game.");
+                    return;
+                }
 
                 const allPlayers = playersResult.data;
                 setPlayers(allPlayers);
                 setRecentPlayers(getLastPlayers(gamesResult.data, allPlayers, 20) ?? []);
-                const latestGame = gamesResult.data[0];
-                if (latestGame) {
+                const selectedGame = gameResult.data;
+                if (selectedGame) {
+                    setEditingGame(selectedGame);
+                    const selectedGamePlayerIds = new Set(selectedGame.players_uid);
+                    setSelectedPlayers(allPlayers.filter(player => selectedGamePlayerIds.has(player.id)));
+                    setCallColor(selectedGame.call_color ?? "");
+                    setPointsAtt(String(selectedGame.points_att));
+                    setNBouts(String(selectedGame.n_bouts));
+                    setNBoutsHandStart(selectedGame.n_bouts_hand_start == null ? "" : String(selectedGame.n_bouts_hand_start));
+                    setNBoutsDog(selectedGame.n_bouts_dog == null ? "" : String(selectedGame.n_bouts_dog));
+                    setNBoutsCalled(selectedGame.n_bouts_called == null ? "" : String(selectedGame.n_bouts_called));
+                    const misereTypes = selectedGame.misere_type_arr ?? (selectedGame.misere_type ? [selectedGame.misere_type] : []);
+                    const misereIds = selectedGame.misere_player_id_arr ?? (selectedGame.misere_player_id ? [selectedGame.misere_player_id] : []);
+                    const poigneeTypes = selectedGame.poignee_type_arr ?? (selectedGame.poignee_type ? [selectedGame.poignee_type] : []);
+                    const poigneeIds = selectedGame.poignee_player_id_arr ?? (selectedGame.poignee_player_id ? [selectedGame.poignee_player_id] : []);
+                    setMisereTypes(misereTypes);
+                    setMisereIds(misereIds);
+                    setNumberOfMisere(Math.max(misereTypes.length, misereIds.length));
+                    setPoigneeTypes(poigneeTypes);
+                    setPoigneeIds(poigneeIds);
+                    setNumberOfPoignee(Math.max(poigneeTypes.length, poigneeIds.length));
+                    setForm({
+                        call_id: selectedGame.call_id,
+                        contract: selectedGame.contract,
+                        taker_id: selectedGame.taker_id,
+                        chelem: selectedGame.chelem,
+                        chelem_player_id: selectedGame.chelem_player_id,
+                        petit_au_bout_player_id: selectedGame.petit_au_bout_player_id,
+                        petit_au_bout: selectedGame.petit_au_bout,
+                    });
+                } else if (gamesResult.data[0]) {
+                    const latestGame = gamesResult.data[0];
                     const latestGamePlayerIds = new Set(latestGame.players_uid);
                     setSelectedPlayers(allPlayers.filter(player => latestGamePlayerIds.has(player.id)));
                 }
                 setLoaded(true);
             };
 
-            void loadPlayers();
-        }, []);
+            void loadFormData();
+        }, [gameId]);
 const handleChangeCallColor = (value: string) => {
     setCallColor(value);
     //setForm((prev) => ({ ...prev, called_color: value }));
@@ -169,51 +208,85 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 return;
             }
 
+            if (!form.taker_id || !form.call_id || !form.contract) {
+                setSubmitError("Select a taker, called player, and contract.");
+                return;
+            }
+
             setSubmitError(null);
             try {
-                const res = await fetch("/api/insert", {
+                const payload = {
+                    ...(editingGame ? { id: editingGame.id } : {}),
+                    call_id: form.call_id,
+                    call_color: call_color || null,
+                    contract: form.contract,
+                    taker_id: form.taker_id,
+                    chelem: form.chelem,
+                    chelem_player_id: form.chelem_player_id,
+                    poignee_type: poigneeTypes[0] || null,
+                    poignee_player_id: poigneeIds[0] || null,
+                    poignee_type_arr: poigneeTypes.length ? poigneeTypes : null,
+                    poignee_player_id_arr: poigneeIds.length ? poigneeIds : null,
+                    misere_type: misereTypes[0] || null,
+                    misere_player_id: misereIds[0] || null,
+                    misere_type_arr: misereTypes.length ? misereTypes : null,
+                    misere_player_id_arr: misereIds.length ? misereIds : null,
+                    petit_au_bout_player_id: form.petit_au_bout_player_id,
+                    petit_au_bout: form.petit_au_bout,
+                    points_att: Number(pointsAtt),
+                    n_bouts: Number(nBouts),
+                    n_bouts_hand_start: nBoutsHandStart === "" ? null : Number(nBoutsHandStart),
+                    n_bouts_dog: nBoutsDog === "" ? null : Number(nBoutsDog),
+                    n_bouts_called: nBoutsCalled === "" ? null : Number(nBoutsCalled),
+                    players_uid: players_uid.map(p => p.id),
+                };
+                const res = await fetch(editingGame ? "/api/update" : "/api/insert", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        call_id: form.call_id,
-                        call_color: call_color,
-                        contract: form.contract,
-                        taker_id: form.taker_id,
-                        chelem: form.chelem,
-                        chelem_player_id: form.chelem_player_id,
-                        poignee_type_arr: poigneeTypes || null,
-                        poignee_player_id_arr: poigneeIds || null,
-                        misere_type_arr: misereTypes || null,
-                        misere_player_id_arr: misereIds || null,
-                        petit_au_bout_player_id: form.petit_au_bout_player_id,
-                        petit_au_bout: form.petit_au_bout,
-                        points_att: Number(pointsAtt),
-                        n_bouts: Number(nBouts),
-                        n_bouts_hand_start: nBoutsHandStart === "" ? null : Number(nBoutsHandStart),
-                        n_bouts_dog: nBoutsDog === "" ? null : Number(nBoutsDog),
-                        n_bouts_called: nBoutsCalled === "" ? null : Number(nBoutsCalled),
-                        players_uid: players_uid.map(p => p.id),
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 if (!res.ok) {
                     const result = await res.json();
-                    setSubmitError(result.error ?? "Could not create game.");
+                    setSubmitError(result.error ?? (editingGame ? "Could not save game changes." : "Could not create game."));
                     return;
                 }
 
-                alert("Game created");
+                alert(editingGame ? "Game changes saved" : "Game created");
                 router.push("/");
             } catch (error) {
-                console.error("Error creating game:", error);
-                setSubmitError("Could not create game. Check your connection and try again.");
+                console.error(editingGame ? "Error updating game:" : "Error creating game:", error);
+                setSubmitError(editingGame
+                    ? "Could not save game changes. Check your connection and try again."
+                    : "Could not create game. Check your connection and try again.");
             }
             
         };
+
+        if (gameId && !editingGame) {
+            return (
+                <main className="p-6">
+                    {loadError
+                        ? <p role="alert" className="text-red-600">{loadError}</p>
+                        : <p>Loading game...</p>}
+                </main>
+            );
+        }
+
+        const saveDateLabel = editingGame
+            ? new Date(editingGame.created_at).toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23",
+            })
+            : "";
         
         return (<main className="p-6">
             <form onSubmit={handleSubmit} className="new-game-form flex flex-col gap-4 rounded p-6 shadow w-auto">
-            <h1 className="text-xl font-bold">New Game</h1>
+            <h1 className="text-xl font-bold">{editingGame ? "Edit Game" : "New Game"}</h1>
             
             <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
             <div className="flex items-center justify-between gap-2">
@@ -414,14 +487,14 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <h2 className="font-medium">Misere</h2>
 {Array.from({ length: numberOfMisere }, (_, i) => (
                     <div key={i} className="flex flex-row gap-2">
-                    <select name="misere_type" onChange={(e) => handleChangeMisereType(i, e.target.value)}>
-                    <option defaultValue="">None</option>
+                    <select name="misere_type" value={misereTypes[i] ?? ""} onChange={(e) => handleChangeMisereType(i, e.target.value)}>
+                    <option value="">None</option>
                     {Enums.Misere.map((p) => (
                         <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="misere_player_id" onChange={(e) => handleChangeMiserePlayerId(i, e.target.value)}>
-                <option defaultValue="">Player</option>
+                <select name="misere_player_id" value={misereIds[i] ?? ""} onChange={(e) => handleChangeMiserePlayerId(i, e.target.value)}>
+                <option value="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
@@ -441,14 +514,14 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <h2 className="font-medium">Poignee</h2>
 {Array.from({ length: numberOfPoignee }, (_, i) => (
                     <div key={i} className="flex flex-row gap-2">
-                    <select name="poignee_type" onChange={(e) => handleChangePoigneeType(i, e.target.value)}>
-                    <option defaultValue="">None</option>
+                    <select name="poignee_type" value={poigneeTypes[i] ?? ""} onChange={(e) => handleChangePoigneeType(i, e.target.value)}>
+                    <option value="">None</option>
                     {Enums.Poignee.map((p) => (
                         <option key={p}>{p}</option>
                 ))}
                 </select>
-                <select name="poignee_player_id" onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
-                <option defaultValue="">Player</option>
+                <select name="poignee_player_id" value={poigneeIds[i] ?? ""} onChange={(e) => handleChangePoigneePlayerId(i, e.target.value)}>
+                <option value="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
@@ -465,23 +538,23 @@ const handleChangePoigneeType = (index: number, value: string) => {
 
                 <div className="flex flex-row flex-wrap gap-4">
                 <h1 className="font-medium">Petit au bout</h1>
-                <select name="petit_au_bout_player_id" onChange={handleChange}>
-                <option defaultValue="">Player</option>
+                <select name="petit_au_bout_player_id" value={form.petit_au_bout_player_id ?? ""} onChange={handleChange}>
+                <option value="">Player</option>
                 {players_uid.map((p) => (
                     <option key={p.id} value={p.id} style={{ color: getDefaultPlayerColor(p, players) }}>
                     {p.Name}
                     </option>
                 ))}
                 </select>
-                <select name="petit_au_bout" onChange={handleChange}>
-                <option defaultValue="">Outcome</option>
+                <select name="petit_au_bout" value={form.petit_au_bout ?? ""} onChange={handleChange}>
+                <option value="">Outcome</option>
                 <option value="Lost">Lost</option>
                 <option value="Won">Won</option>
                 </select>
                 </div>
 <div className="flex flex-row flex-wrap gap-4">
                 <h2 className="font-medium">Chelem</h2>
-                <select name="chelem" onChange={handleChange}>
+                <select name="chelem" value={form.chelem ?? ""} onChange={handleChange}>
                 <option value="">Chelem</option>
                 {Enums.Chelem.map((c) => {let s=""
                     switch(c){
@@ -500,7 +573,9 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 </select>
                 </div>
                 </section>
-                <button type="submit" className="bg-gray-800 text-white p-2 font-bold">Create</button>
+                <button type="submit" className="bg-gray-800 p-2 font-bold text-white">
+                  {editingGame ? `Save Changes to ${saveDateLabel}` : "Create"}
+                </button>
                 </form></main>
             );
         }
