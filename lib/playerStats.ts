@@ -16,6 +16,7 @@ export type PlayerStatistics = {
   favoriteCalledPlayer: string | null;
   favoriteCalledPlayerCount: number;
   favoriteSuitCount: number;
+  suitCallCount: number;
 };
 
 type PlayerStatisticsAccumulator = {
@@ -165,6 +166,7 @@ export function getAllPlayerStatistics(
           : null,
       favoriteCalledPlayerCount: favoriteCalledPlayerEntry?.[1] ?? 0,
       favoriteSuitCount: favoriteSuitEntry?.[1] ?? 0,
+      suitCallCount: [...stats.suitCounts.values()].reduce((total, count) => total + count, 0),
     };
   }
 

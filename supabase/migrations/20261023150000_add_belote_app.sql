@@ -1,4 +1,4 @@
-CREATE TABLE public."BeloteMatches" (
+CREATE TABLE IF NOT EXISTS public."BeloteMatches" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
   target_score integer NOT NULL DEFAULT 1000 CHECK (target_score >= 100),
@@ -16,7 +16,7 @@ CREATE TABLE public."BeloteMatches" (
   )
 );
 
-CREATE TABLE public."BeloteHands" (
+CREATE TABLE IF NOT EXISTS public."BeloteHands" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   match_id uuid NOT NULL REFERENCES public."BeloteMatches"(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -28,5 +28,8 @@ CREATE TABLE public."BeloteHands" (
   belote_team smallint NULL CHECK (belote_team IN (1, 2))
 );
 
-CREATE INDEX belote_matches_created_at_idx ON public."BeloteMatches"(created_at DESC);
-CREATE INDEX belote_hands_match_created_at_idx ON public."BeloteHands"(match_id, created_at);
+CREATE INDEX IF NOT EXISTS belote_matches_created_at_idx ON public."BeloteMatches"(created_at DESC);
+CREATE INDEX IF NOT EXISTS belote_hands_match_created_at_idx ON public."BeloteHands"(match_id, created_at);
+
+CREATE UNIQUE INDEX IF NOT EXISTS players_name_unique
+  ON public."Players"(lower(btrim("Name")));

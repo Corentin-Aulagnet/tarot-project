@@ -56,8 +56,8 @@ export default function PlayerStatsBadges({
     { key: "calledCount", label: "Times called as partner", text: `Called ${stats.calledCount} (${percentage(stats.calledCount, stats.gamesPlayed)})` },
     {
       key: "favoriteSuit",
-      label: "Favourite called suit",
-      text: `Suit ${percentage(stats.favoriteSuitCount, stats.gamesTaken)}`,
+      label: "Favourite called suit among taken games with a suit call",
+      text: `Suit ${percentage(stats.favoriteSuitCount, stats.suitCallCount)}`,
       suit: stats.favoriteSuit,
     },
   ];
@@ -85,7 +85,7 @@ export default function PlayerStatsBadges({
         <span className="sr-only">{badge.label}: </span>
         {badge.suit ? (
           <>
-            <span>Suit</span> <SuitSymbol suit={badge.suit} className="ml-0.5 !text-xs" /> <span>{percentage(stats.favoriteSuitCount, stats.gamesTaken)}</span>
+            <span>Suit</span> <SuitSymbol suit={badge.suit} className="ml-0.5 !text-xs" /> <span>{percentage(stats.favoriteSuitCount, stats.suitCallCount)}</span>
           </>
         ) : badge.text}
       </button>

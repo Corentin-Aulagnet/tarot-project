@@ -19,6 +19,7 @@
 import Link from "next/link";
 import "@/app/globals.css";
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef } from "react";
 import {
   HomeIcon,
   PlusCircleIcon,
@@ -39,6 +40,7 @@ function classNames(...classes: string[]) {
 export default function Example() {
 
     const currentRoute = usePathname();
+  const gameMenuRef = useRef<HTMLDetailsElement>(null);
   const isBelote = currentRoute === "/belote" || currentRoute.startsWith("/belote/");
   const activeGame = isBelote ? "BELOTE" : "TAROT";
   const gameNavigation = isBelote
@@ -54,6 +56,31 @@ export default function Example() {
     if (isBelote && href === "/belote") return /^\/belote\/[^/]+$/.test(currentRoute);
     return isBelote && currentRoute.startsWith(`${href}/`);
   };
+
+  useEffect(() => {
+    const closeMenuOnOutsideClick = (event: PointerEvent) => {
+      if (event.target instanceof Node && !gameMenuRef.current?.contains(event.target)) {
+        if (gameMenuRef.current) gameMenuRef.current.open = false;
+      }
+    };
+    const closeMenuOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && gameMenuRef.current) {
+        gameMenuRef.current.open = false;
+      }
+    };
+
+    document.addEventListener("pointerdown", closeMenuOnOutsideClick);
+    document.addEventListener("keydown", closeMenuOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenuOnOutsideClick);
+      document.removeEventListener("keydown", closeMenuOnEscape);
+    };
+  }, []);
+
+  const closeGameMenu = () => {
+    if (gameMenuRef.current) gameMenuRef.current.open = false;
+  };
+
   return (
     <nav className="relative z-50 bg-gray-800">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -79,7 +106,7 @@ export default function Example() {
             <span className="text-xs font-light tracking-[0.2em] text-gray-300 sm:text-sm">
               {activeGame}
             </span>
-            <details className="group relative">
+            <details ref={gameMenuRef} className="group relative">
               <summary
                 aria-label="Choose a game"
                 title="Choose a game"
@@ -90,6 +117,7 @@ export default function Example() {
               <div className="absolute right-0 top-full mt-2 min-w-40 rounded-md border border-gray-600 bg-gray-900 p-1 shadow-lg">
                 <Link
                   href="/"
+                  onClick={closeGameMenu}
                   aria-current={!isBelote ? "page" : undefined}
                   className={`block rounded px-3 py-2 text-sm font-medium ${!isBelote ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                 >
@@ -97,6 +125,7 @@ export default function Example() {
                 </Link>
                 <Link
                   href="/belote"
+                  onClick={closeGameMenu}
                   aria-current={isBelote ? "page" : undefined}
                   className={`block rounded px-3 py-2 text-sm font-medium ${isBelote ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                 >

@@ -11,6 +11,8 @@ import {
 } from "@/lib/playerColors";
 import PlayerColorPicker from "@/components/PlayerColorPicker";
 import PlayerStatsBadges from "@/components/PlayerStatsBadges";
+import DuplicatePlayerPrompt from "@/components/DuplicatePlayerPrompt";
+import { findDuplicatePlayer } from "@/lib/playerNames";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -59,6 +61,7 @@ export default function PlayersPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [duplicatePlayer, setDuplicatePlayer] = useState<Players | null>(null);
 
   useEffect(() => {
     let isCurrent = true;
@@ -115,7 +118,15 @@ export default function PlayersPage() {
       setError("Enter a player name.");
       return;
     }
+    const existingPlayer = findDuplicatePlayer(players, trimmedName);
+    if (existingPlayer) {
+      setError(null);
+      setMessage(null);
+      setDuplicatePlayer(existingPlayer);
+      return;
+    }
 
+    setDuplicatePlayer(null);
     setError(null);
     setMessage(null);
     setIsSaving(true);
@@ -138,6 +149,22 @@ export default function PlayersPage() {
     if (insertError) {
       setIsSaving(false);
       console.error("Error creating player:", insertError);
+      if (insertError.code === "23505" && insertError.message.includes("players_name_unique")) {
+        const { data: latestPlayers, error: lookupError } = await supabase
+          .from("Players")
+          .select("*")
+          .order("Name", { ascending: true });
+        if (lookupError) {
+          console.error("Error checking duplicate player name:", lookupError);
+          setError("Could not verify whether this player already exists. Please try again.");
+          return;
+        }
+        const conflictingPlayer = findDuplicatePlayer(latestPlayers ?? [], trimmedName);
+        if (conflictingPlayer) {
+          setDuplicatePlayer(conflictingPlayer);
+          return;
+        }
+      }
       setError(insertError.code === "23505"
         ? "Could not assign a unique default color. Please try again."
         : "Could not create player. Please try again.");
@@ -230,6 +257,17 @@ export default function PlayersPage() {
         </button>
       </form>
 
+      {duplicatePlayer && (
+        <DuplicatePlayerPrompt
+          player={duplicatePlayer}
+          profileHref={`/players/${duplicatePlayer.id}`}
+          onChooseDifferentName={() => {
+            setDuplicatePlayer(null);
+            setName("");
+            setError(null);
+          }}
+        />
+      )}
       {error && <p role="alert" className="mt-4 text-red-600">{error}</p>}
       {message && <p role="status" className="mt-4 text-green-700">{message}</p>}
 
