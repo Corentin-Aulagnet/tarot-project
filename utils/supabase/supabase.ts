@@ -163,6 +163,103 @@ export type Database = {
           },
         ]
       }
+      BeloteMatches: {
+        Row: {
+          created_at: string
+          id: string
+          target_score: number
+          team1_player1_id: string
+          team1_player2_id: string
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_score?: number
+          team1_player1_id: string
+          team1_player2_id: string
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_score?: number
+          team1_player1_id?: string
+          team1_player2_id?: string
+          team2_player1_id?: string
+          team2_player2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "BeloteMatches_team1_player1_id_fkey"
+            columns: ["team1_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteMatches_team1_player2_id_fkey"
+            columns: ["team1_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteMatches_team2_player1_id_fkey"
+            columns: ["team2_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteMatches_team2_player2_id_fkey"
+            columns: ["team2_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      BeloteHands: {
+        Row: {
+          belote_team: number | null
+          contract_team: number
+          contract_type: string
+          created_at: string
+          id: string
+          match_id: string
+          team1_points: number
+        }
+        Insert: {
+          belote_team?: number | null
+          contract_team: number
+          contract_type: string
+          created_at?: string
+          id?: string
+          match_id: string
+          team1_points: number
+        }
+        Update: {
+          belote_team?: number | null
+          contract_team?: number
+          contract_type?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          team1_points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "BeloteHands_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "BeloteMatches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Players: {
         Row: {
           created_at: string
