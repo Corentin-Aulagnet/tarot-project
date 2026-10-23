@@ -225,38 +225,48 @@ export default function Post({
       detail: `${Math.round(stats.successes / stats.attempts * 100)}% success (${stats.successes}/${stats.attempts})`,
     }));
 
-  const dogBoutsKeptByPlayer = new Map<string, { bouts: number; games: number }>();
-  const calledBoutsByPlayer = new Map<string, { bouts: number; games: number }>();
+  const dogBoutsKeptByPlayer = new Map<string, { bouts: number; takes: number }>();
+  const calledBoutsByPlayer = new Map<string, { bouts: number; takes: number }>();
   games.forEach(game => {
     if (game.contract !== "Garde-Contre" && game.n_bouts_dog !== null) {
-      const stats = dogBoutsKeptByPlayer.get(game.taker_id) ?? { bouts: 0, games: 0 };
+      const stats = dogBoutsKeptByPlayer.get(game.taker_id) ?? { bouts: 0, takes: 0 };
       stats.bouts += game.n_bouts_dog;
-      stats.games += 1;
+      stats.takes += 1;
       dogBoutsKeptByPlayer.set(game.taker_id, stats);
     }
-    if (game.n_bouts_called !== null) {
-      const stats = calledBoutsByPlayer.get(game.call_id) ?? { bouts: 0, games: 0 };
-      stats.bouts += game.n_bouts_called;
-      stats.games += 1;
-      calledBoutsByPlayer.set(game.call_id, stats);
+    if (game.created_at.slice(0, 10) === "2026-10-23") {
+      const calledStats = calledBoutsByPlayer.get(game.taker_id) ?? { bouts: 0, takes: 0 };
+      calledStats.bouts += game.n_bouts_called ?? 0;
+      calledStats.takes += 1;
+      calledBoutsByPlayer.set(game.taker_id, calledStats);
     }
   });
-  const rankBoutCounts = (counts: Map<string, { bouts: number; games: number }>) =>
-    [...counts.entries()]
-      .filter(([, stats]) => stats.bouts > 0)
+  const mostDogBoutsKept = [...dogBoutsKeptByPlayer.entries()]
+      .filter(([, stats]) => stats.takes > 0)
       .sort(([playerA, statsA], [playerB, statsB]) =>
-        statsB.bouts - statsA.bouts
+        statsB.bouts / statsB.takes - statsA.bouts / statsA.takes
         || (playerNames.get(playerA) ?? "").localeCompare(playerNames.get(playerB) ?? "")
       )
       .slice(0, 3)
       .map(([playerId, stats]) => ({
         key: playerId,
         title: playerNames.get(playerId) ?? "Unknown player",
-        value: `${stats.bouts} ${stats.bouts === 1 ? "bout" : "bouts"}`,
-        detail: `${stats.games} ${stats.games === 1 ? "game" : "games"}`,
+        value: `${(stats.bouts / stats.takes).toFixed(2)} bouts`,
+        detail: `${stats.takes} ${stats.takes === 1 ? "take" : "takes"}`,
       }));
-  const mostDogBoutsKept = rankBoutCounts(dogBoutsKeptByPlayer);
-  const mostCalledBouts = rankBoutCounts(calledBoutsByPlayer);
+  const mostCalledBouts = [...calledBoutsByPlayer.entries()]
+      .filter(([, stats]) => stats.takes > 0)
+      .sort(([playerA, statsA], [playerB, statsB]) =>
+        statsB.bouts / statsB.takes - statsA.bouts / statsA.takes
+        || (playerNames.get(playerA) ?? "").localeCompare(playerNames.get(playerB) ?? "")
+      )
+      .slice(0, 3)
+      .map(([playerId, stats]) => ({
+        key: playerId,
+        title: playerNames.get(playerId) ?? "Unknown player",
+        value: `${(stats.bouts / stats.takes).toFixed(2)} bouts`,
+        detail: `${stats.takes} ${stats.takes === 1 ? "take" : "takes"}`,
+      }));
 
   const biggestNoBoutsWins = noInitialBoutsGames
     .map(game => ({
@@ -273,7 +283,7 @@ export default function Post({
       key: game.id,
       title: playerNames.get(game.taker_id) ?? "Unknown player",
       value: `+${takerScore} scored`,
-      detail: `${game.points_att} attack points\n${formatGameDate(game.created_at)}`,
+      detail: `${game.contract} · called ${playerNames.get(game.call_id) ?? "Unknown player"}`,
     }));
 
   const mostPlayedItems = topPlayedPlayers.map(player => ({
@@ -372,35 +382,36 @@ export default function Post({
         />
       </section>
 
-      <section className="space-y-1.5">
-        <h2 className="text-base font-semibold">No bouts, no problem</h2>
-        <RankingCards
-          items={noBoutsTakers}
-          emptyMessage="No games with zero bouts at the start have been recorded."
-        />
-      </section>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-3">
+        <section className="space-y-1.5">
+          <h2 className="text-base font-semibold">Takes with no initial bouts</h2>
+          <RankingCards
+            items={noBoutsTakers}
+            emptyMessage="No games with zero bouts at the start have been recorded."
+          />
+        </section>
 
-      <section className="space-y-2">
-        <h2 className="text-base font-semibold">No bouts, let&apos;s go big</h2>
-        <RankingCards
-          items={biggestNoBoutsWins}
-          emptyMessage="No positive taker scores from games with zero bouts at the start."
-          stacked
-        />
-      </section>
+        <section className="space-y-1.5">
+          <h2 className="text-base font-semibold">Big games with no initial bouts</h2>
+          <RankingCards
+            items={biggestNoBoutsWins}
+            emptyMessage="No positive taker scores from games with zero bouts at the start."
+            stacked
+          />
+        </section>
+      </div>
 
       <section className="space-y-1.5">
-        <h2 className="text-base font-semibold">Lucky Player</h2>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-3">
           <section className="space-y-1">
-            <h3 className="text-sm font-medium">Most bouts found in the dog and kept</h3>
+            <h2 className="text-base font-semibold">Bouts found in dog (kept)</h2>
             <RankingCards
               items={mostDogBoutsKept}
               emptyMessage="No dog-bout data recorded outside Garde-Contre games."
             />
           </section>
           <section className="space-y-1">
-            <h3 className="text-sm font-medium">Most bouts called</h3>
+            <h2 className="text-base font-semibold">Bouts called</h2>
             <RankingCards
               items={mostCalledBouts}
               emptyMessage="No called-bout data recorded yet."

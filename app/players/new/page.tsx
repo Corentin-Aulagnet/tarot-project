@@ -22,6 +22,8 @@ type PlayerSortField =
   | "maxScored"
   | "maxLost"
   | "averageStartingBouts"
+  | "averageDogBouts"
+  | "averageCalledBouts"
   | "averageEndingBouts"
   | "gamesTaken"
   | "favoriteCalledPlayer"
@@ -36,6 +38,8 @@ const playerSortOptions: { value: PlayerSortField; label: string }[] = [
   { value: "maxScored", label: "Max scored" },
   { value: "maxLost", label: "Max lost" },
   { value: "averageStartingBouts", label: "Bouts Start" },
+  { value: "averageDogBouts", label: "Bouts Dog" },
+  { value: "averageCalledBouts", label: "Bouts Called" },
   { value: "averageEndingBouts", label: "Bouts Won" },
   { value: "gamesTaken", label: "Taken" },
   { value: "favoriteCalledPlayer", label: "Most Calls to" },
@@ -288,7 +292,7 @@ export default function PlayersPage() {
                     >
                       {player.Name}
                     </Link>
-                    <PlayerStatsBadges stats={stats} />
+                    <PlayerStatsBadges stats={stats} sortField={sortField} />
                   </div>
               </li>
             ))}

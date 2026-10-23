@@ -4,6 +4,8 @@ export type PlayerStatistics = {
   maxScored: number | null;
   maxLost: number | null;
   averageStartingBouts: number | null;
+  averageDogBouts: number | null;
+  averageCalledBouts: number | null;
   averageEndingBouts: number | null;
   calledCount: number;
   favoriteSuit: string | null;
@@ -13,6 +15,7 @@ export type PlayerStatistics = {
   averageScoredPointsPerGame: number | null;
   favoriteCalledPlayer: string | null;
   favoriteCalledPlayerCount: number;
+  favoriteSuitCount: number;
 };
 
 type PlayerStatisticsAccumulator = {
@@ -26,6 +29,10 @@ type PlayerStatisticsAccumulator = {
   calledCount: number;
   startingBoutTotal: number;
   startingBoutCount: number;
+  dogBoutTotal: number;
+  dogBoutGameCount: number;
+  calledBoutTotal: number;
+  calledBoutGameCount: number;
   endingBoutTotal: number;
   suitCounts: Map<string, number>;
   calledPlayerCounts: Map<Players["id"], number>;
@@ -48,6 +55,10 @@ export function getAllPlayerStatistics(
       calledCount: 0,
       startingBoutTotal: 0,
       startingBoutCount: 0,
+      dogBoutTotal: 0,
+      dogBoutGameCount: 0,
+      calledBoutTotal: 0,
+      calledBoutGameCount: 0,
       endingBoutTotal: 0,
       suitCounts: new Map(),
       calledPlayerCounts: new Map(),
@@ -86,9 +97,18 @@ export function getAllPlayerStatistics(
     if (!takerStats) continue;
     takerStats.gamesTaken += 1;
     takerStats.endingBoutTotal += game.n_bouts;
-    if (game.n_bouts_hand_start !== null) {
+    const gameDate = game.created_at.slice(0, 10);
+    if (gameDate >= "2026-10-22" && game.n_bouts_hand_start !== null) {
       takerStats.startingBoutTotal += game.n_bouts_hand_start;
       takerStats.startingBoutCount += 1;
+    }
+    if (gameDate >= "2026-10-23") {
+      takerStats.calledBoutTotal += game.n_bouts_called ?? 0;
+      takerStats.calledBoutGameCount += 1;
+      if (game.contract !== "Garde-Contre") {
+        takerStats.dogBoutTotal += game.n_bouts_dog ?? 0;
+        takerStats.dogBoutGameCount += 1;
+      }
     }
     if (game.call_color) {
       takerStats.suitCounts.set(
@@ -121,6 +141,12 @@ export function getAllPlayerStatistics(
       averageStartingBouts: stats.startingBoutCount
         ? stats.startingBoutTotal / stats.startingBoutCount
         : null,
+      averageDogBouts: stats.dogBoutGameCount
+        ? stats.dogBoutTotal / stats.dogBoutGameCount
+        : null,
+      averageCalledBouts: stats.calledBoutGameCount
+        ? stats.calledBoutTotal / stats.calledBoutGameCount
+        : null,
       averageEndingBouts: stats.gamesTaken
         ? stats.endingBoutTotal / stats.gamesTaken
         : null,
@@ -138,6 +164,7 @@ export function getAllPlayerStatistics(
           ? playerNames.get(favoriteCalledPlayerId) ?? null
           : null,
       favoriteCalledPlayerCount: favoriteCalledPlayerEntry?.[1] ?? 0,
+      favoriteSuitCount: favoriteSuitEntry?.[1] ?? 0,
     };
   }
 
