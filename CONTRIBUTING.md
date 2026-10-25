@@ -192,6 +192,16 @@ Game: 3 players (Alice, Bob, Carol)
 3. Client component renders game details + edit/delete buttons
 4. User can modify game or view breakdown
 
+## Belote and Coinche Apps
+
+Belote and Coinche have separate apps, histories, statistics, and database tables. Each game stores all four player positions so the next game's form can restore the same lineup. Player profiles are shared with Tarot; each game form starts with players from its most recent 20 games and can be switched to the full player list.
+
+Each player's score is zero-sum: find the difference between the two teams' points won, then award half to each player on the winning team and subtract half from each player on the losing team. Belote/Rebelote adds 20 points to its team; an unannounced capot adds 90. Coinche contract points are added to the winning team's points, doubled when coinched and quadrupled when sur-coinched; capot annoncé is worth 250 contract points.
+
+On an 81–81 card-point tie, the non-takers win their 81 points and the takers' 81 are held for the next game with the same four players and partnership configuration. Those held points are included in the next game's differential.
+
+The `BeloteGames` and `CoincheGames` tables keep the two rule sets separate. The migration creates them and copies existing game records from the legacy Belote match/hand tables without deleting the old records.
+
 ---
 
 ## Key Concepts

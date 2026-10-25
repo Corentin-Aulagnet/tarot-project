@@ -225,29 +225,44 @@ export type Database = {
       BeloteHands: {
         Row: {
           belote_team: number | null
+          capot_announced: boolean
+          coinched: boolean
           contract_team: number
-          contract_type: string
+          contract_points: number | null
+          contract_type: string | null
           created_at: string
+          game_type: string
           id: string
           match_id: string
+          surcoinched: boolean
           team1_points: number
         }
         Insert: {
           belote_team?: number | null
+          capot_announced?: boolean
+          coinched?: boolean
           contract_team: number
-          contract_type: string
+          contract_points?: number | null
+          contract_type?: string | null
           created_at?: string
+          game_type?: string
           id?: string
           match_id: string
+          surcoinched?: boolean
           team1_points: number
         }
         Update: {
           belote_team?: number | null
+          capot_announced?: boolean
+          coinched?: boolean
           contract_team?: number
-          contract_type?: string
+          contract_points?: number | null
+          contract_type?: string | null
           created_at?: string
+          game_type?: string
           id?: string
           match_id?: string
+          surcoinched?: boolean
           team1_points?: number
         }
         Relationships: [
@@ -256,6 +271,154 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "BeloteMatches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      BeloteGames: {
+        Row: {
+          belote_team: number | null
+          contract_team: number
+          contract_type: string | null
+          created_at: string
+          id: string
+          team1_player1_id: string
+          team1_player2_id: string
+          team1_points: number
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Insert: {
+          belote_team?: number | null
+          contract_team: number
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          team1_player1_id: string
+          team1_player2_id: string
+          team1_points: number
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Update: {
+          belote_team?: number | null
+          contract_team?: number
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          team1_player1_id?: string
+          team1_player2_id?: string
+          team1_points?: number
+          team2_player1_id?: string
+          team2_player2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "BeloteGames_team1_player1_id_fkey"
+            columns: ["team1_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteGames_team1_player2_id_fkey"
+            columns: ["team1_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteGames_team2_player1_id_fkey"
+            columns: ["team2_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "BeloteGames_team2_player2_id_fkey"
+            columns: ["team2_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      CoincheGames: {
+        Row: {
+          belote_team: number | null
+          capot_announced: boolean
+          coinched: boolean
+          contract_points: number | null
+          contract_team: number
+          contract_type: string | null
+          created_at: string
+          id: string
+          surcoinched: boolean
+          team1_player1_id: string
+          team1_player2_id: string
+          team1_points: number
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Insert: {
+          belote_team?: number | null
+          capot_announced?: boolean
+          coinched?: boolean
+          contract_points?: number | null
+          contract_team: number
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          surcoinched?: boolean
+          team1_player1_id: string
+          team1_player2_id: string
+          team1_points: number
+          team2_player1_id: string
+          team2_player2_id: string
+        }
+        Update: {
+          belote_team?: number | null
+          capot_announced?: boolean
+          coinched?: boolean
+          contract_points?: number | null
+          contract_team?: number
+          contract_type?: string | null
+          created_at?: string
+          id?: string
+          surcoinched?: boolean
+          team1_player1_id?: string
+          team1_player2_id?: string
+          team1_points?: number
+          team2_player1_id?: string
+          team2_player2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CoincheGames_team1_player1_id_fkey"
+            columns: ["team1_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "CoincheGames_team1_player2_id_fkey"
+            columns: ["team1_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "CoincheGames_team2_player1_id_fkey"
+            columns: ["team2_player1_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "CoincheGames_team2_player2_id_fkey"
+            columns: ["team2_player2_id"]
+            isOneToOne: false
+            referencedRelation: "Players"
             referencedColumns: ["id"]
           },
         ]

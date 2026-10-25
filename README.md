@@ -2,6 +2,8 @@
 
 A real-time game scoring and analytics platform for Tarot card games. Track scores across multiple players, visualize trends, and manage game history.
 
+The app also includes separate Belote and Coinche game trackers with zero-sum per-player scoring.
+
 **Built with**: Next.js 16, React 19, TypeScript, Tailwind CSS, Supabase (PostgreSQL)
 
 ## 🎴 What This Does

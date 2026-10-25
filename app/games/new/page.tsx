@@ -265,7 +265,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
 
         if (gameId && !editingGame) {
             return (
-                <main className="p-6">
+                <main className="p-3">
                     {loadError
                         ? <p role="alert" className="text-red-600">{loadError}</p>
                         : <p>Loading game...</p>}
@@ -284,11 +284,11 @@ const handleChangePoigneeType = (index: number, value: string) => {
             })
             : "";
         
-        return (<main className="p-6">
-            <form onSubmit={handleSubmit} className="new-game-form flex flex-col gap-4 rounded p-6 shadow w-auto">
-            <h1 className="text-xl font-bold">{editingGame ? "Edit Game" : "New Game"}</h1>
+        return (<main className="p-3">
+            <form onSubmit={handleSubmit} className="new-game-form flex flex-col gap-3 rounded p-3 shadow w-auto">
+            <h1 className="text-lg font-bold">{editingGame ? "Edit Game" : "New Game"}</h1>
             
-            <div className = "flex flex-col gap-4 border p-2 rounded border-gray-300 border-width:15px">
+            <div className = "flex flex-col gap-2 border p-2 rounded border-gray-300 border-width:15px">
             <div className="flex items-center justify-between gap-2">
                 <h1 className="font-medium">Select Players</h1>
                 <button
@@ -306,7 +306,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
             )}
             <div className="flex flex-wrap gap-2">
             {selectablePlayers.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
-                <label key={p.id} className="flex items-center gap-1">
+                <label key={p.id} className="flex items-center gap-1 text-sm">
                 <input
                     type="checkbox"
                     value={p.id}
@@ -319,14 +319,14 @@ const handleChangePoigneeType = (index: number, value: string) => {
             </div>
             </div>
             
-            <section className="flex flex-col gap-5 rounded border border-gray-300 p-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <section className="flex flex-col gap-3 rounded border border-gray-300 p-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <select
                   aria-label="Taker"
                   name="taker_id"
                   value={form.taker_id}
                   onChange={handleChange}
-                  className="w-full rounded border p-2"
+                  className="w-full rounded border px-2 py-1.5"
                 >
                   <option value="">Taker</option>
                   {players_uid.toSorted((a, b) => a.Name.localeCompare(b.Name)).map((p) => (
@@ -338,7 +338,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                   name="call_id"
                   value={form.call_id}
                   onChange={handleChange}
-                  className="w-full rounded border p-2"
+                  className="w-full rounded border px-2 py-1.5"
                 >
                   <option value="">Called Player</option>
                   {players_uid.map((p) => (
@@ -349,7 +349,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                   aria-label="Called Suit"
                   value={call_color}
                   onChange={(e) => handleChangeCallColor(e.target.value)}
-                  className="w-full rounded border p-2"
+                  className="w-full rounded border px-2 py-1.5"
                   style={{
                     color: call_color === ""
                       ? "#9ca3af"
@@ -369,7 +369,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                     </option>
                   ))}
                 </select>
-                <select id="contract" aria-label="Contract" name="contract" value={form.contract} onChange={handleChange} required className="w-full rounded border p-2">
+                <select id="contract" aria-label="Contract" name="contract" value={form.contract} onChange={handleChange} required className="w-full rounded border px-2 py-1.5">
                   <option value="">Select contract</option>
                   {Enums.Contract.map((c) => <option key={c}>{c}</option>)}
                 </select>
@@ -383,7 +383,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       name="n_bouts_hand_start"
                       value={nBoutsHandStart}
                       onChange={(e) => setNBoutsHandStart(e.target.value)}
-                      className={`w-full rounded border p-2 ${isHandStartValid ? "border-gray-300" : "border-red-500"}`}
+                      className={`w-full rounded border px-2 py-1.5 ${isHandStartValid ? "border-gray-300" : "border-red-500"}`}
                       style={{ color: nBoutsHandStart === "" ? "#9ca3af" : undefined }}
                     >
                       <option value="" className="text-gray-400">Starting Bouts</option>
@@ -396,7 +396,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       name="n_bouts_dog"
                       value={nBoutsDog}
                       onChange={(e) => setNBoutsDog(e.target.value)}
-                      className={`w-full rounded border p-2 ${isDogBoutsValid ? "border-gray-300" : "border-red-500"}`}
+                      className={`w-full rounded border px-2 py-1.5 ${isDogBoutsValid ? "border-gray-300" : "border-red-500"}`}
                       style={{ color: nBoutsDog === "" ? "#9ca3af" : undefined }}
                     >
                       <option value="" className="text-gray-400">Dog Bouts</option>
@@ -409,7 +409,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       name="n_bouts_called"
                       value={nBoutsCalled}
                       onChange={(e) => setNBoutsCalled(e.target.value)}
-                      className={`w-full rounded border p-2 ${isCalledBoutsValid ? "border-gray-300" : "border-red-500"}`}
+                      className={`w-full rounded border px-2 py-1.5 ${isCalledBoutsValid ? "border-gray-300" : "border-red-500"}`}
                       style={{ color: nBoutsCalled === "" ? "#9ca3af" : undefined }}
                     >
                       <option value="" className="text-gray-400">Called Bouts</option>
@@ -423,7 +423,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       required
                       value={nBouts}
                       onChange={handleChangeNBouts}
-                      className={`w-full rounded border p-2 ${isWonBoutsValid ? "border-gray-300" : "border-red-500"}`}
+                      className={`w-full rounded border px-2 py-1.5 ${isWonBoutsValid ? "border-gray-300" : "border-red-500"}`}
                     >
                       <option value="" className="text-gray-400">Won Bouts</option>
                       {[0, 1, 2, 3].map((value) => <option key={value} value={value}>{value}</option>)}
@@ -433,7 +433,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
               </div>
 
               <div>
-                <div className="flex flex-wrap justify-center gap-6">
+                <div className="flex flex-wrap justify-center gap-4">
                   <label className="flex flex-col gap-1 font-medium">
                     <span className="flex items-baseline gap-3">
                       Attack
@@ -444,7 +444,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       )}
                     </span>
                     <input
-                      className="w-[5.5rem] rounded border px-2 py-2 text-base"
+                      className="w-[5.5rem] rounded border px-2 py-1.5 text-base"
                       name="points_att"
                       type="number"
                       min={0}
@@ -466,7 +466,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       )}
                     </span>
                     <input
-                      className="w-[5.5rem] rounded border px-2 py-2 text-base"
+                      className="w-[5.5rem] rounded border px-2 py-1.5 text-base"
                       name="points_def"
                       type="number"
                       min={0}
@@ -482,8 +482,8 @@ const handleChangePoigneeType = (index: number, value: string) => {
             </section>
             {submitError && <p role="alert" className="text-red-600">{submitError}</p>}
                 
-            <section className="flex flex-col gap-4 rounded border border-gray-300 p-4">
-                <div className="flex flex-row flex-wrap gap-4">
+            <section className="flex flex-col gap-3 rounded border border-gray-300 p-3">
+                <div className="flex flex-row flex-wrap gap-3">
                 <h2 className="font-medium">Misere</h2>
 {Array.from({ length: numberOfMisere }, (_, i) => (
                     <div key={i} className="flex flex-row gap-2">
@@ -510,7 +510,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 </div>
 
                 
-                <div className="flex flex-row flex-wrap gap-4">
+                <div className="flex flex-row flex-wrap gap-3">
                 <h2 className="font-medium">Poignee</h2>
 {Array.from({ length: numberOfPoignee }, (_, i) => (
                     <div key={i} className="flex flex-row gap-2">
@@ -536,7 +536,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 )}
                 </div>
 
-                <div className="flex flex-row flex-wrap gap-4">
+                <div className="flex flex-row flex-wrap gap-3">
                 <h1 className="font-medium">Petit au bout</h1>
                 <select name="petit_au_bout_player_id" value={form.petit_au_bout_player_id ?? ""} onChange={handleChange}>
                 <option value="">Player</option>
@@ -552,7 +552,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 <option value="Won">Won</option>
                 </select>
                 </div>
-<div className="flex flex-row flex-wrap gap-4">
+<div className="flex flex-row flex-wrap gap-3">
                 <h2 className="font-medium">Chelem</h2>
                 <select name="chelem" value={form.chelem ?? ""} onChange={handleChange}>
                 <option value="">Chelem</option>
@@ -573,7 +573,7 @@ const handleChangePoigneeType = (index: number, value: string) => {
                 </select>
                 </div>
                 </section>
-                <button type="submit" className="bg-gray-800 p-2 font-bold text-white">
+                <button type="submit" className="bg-gray-800 px-3 py-1.5 text-sm font-bold text-white">
                   {editingGame ? `Save Changes to ${saveDateLabel}` : "Create"}
                 </button>
                 </form></main>

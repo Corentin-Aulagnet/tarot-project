@@ -42,19 +42,22 @@ export default function Example() {
     const currentRoute = usePathname();
   const gameMenuRef = useRef<HTMLDetailsElement>(null);
   const isBelote = currentRoute === "/belote" || currentRoute.startsWith("/belote/");
-  const activeGame = isBelote ? "BELOTE" : "TAROT";
-  const gameNavigation = isBelote
-    ? [
-        { name: "Home", href: "/belote", Icon: HomeIcon },
-        { name: "New Match", href: "/belote/new", Icon: PlusCircleIcon },
-        { name: "Players", href: "/belote/players", Icon: UserGroupIcon },
-        { name: "Statistics", href: "/belote/statistics", Icon: TrophyIcon },
-      ]
+    const isCoinche = currentRoute === "/coinche" || currentRoute.startsWith("/coinche/");
+    const isTrickGame = isBelote || isCoinche;
+    const activeGame = isBelote ? "BELOTE" : isCoinche ? "COINCHE" : "TAROT";
+    const gamePrefix = isCoinche ? "/coinche" : "/belote";
+    const gameNavigation = isTrickGame
+      ? [
+          { name: "Home", href: gamePrefix, Icon: HomeIcon },
+          { name: "New Game", href: `${gamePrefix}/new`, Icon: PlusCircleIcon },
+          { name: "Players", href: `${gamePrefix}/players`, Icon: UserGroupIcon },
+          { name: "Statistics", href: `${gamePrefix}/statistics`, Icon: TrophyIcon },
+        ]
     : navigation;
-  const isCurrentItem = (href: string) => {
+  const isCurrentItem = (href: string, name: string) => {
     if (currentRoute === href) return true;
-    if (isBelote && href === "/belote") return /^\/belote\/[^/]+$/.test(currentRoute);
-    return isBelote && currentRoute.startsWith(`${href}/`);
+    if (name === "Home" || (isTrickGame && href === gamePrefix)) return false;
+    return currentRoute.startsWith(`${href}/`);
   };
 
   useEffect(() => {
@@ -92,10 +95,10 @@ export default function Example() {
               href={item.href}
               title={item.name}
               aria-label={item.name}
-              aria-current={isCurrentItem(item.href) ? 'page' : undefined}
+              aria-current={isCurrentItem(item.href, item.name) ? 'page' : undefined}
               className={classNames(
-                isCurrentItem(item.href) ? "bg-gray-900 text-white font-bold" : "text-gray-300 hover:bg-white/5 hover:text-white",
-                "inline-flex shrink-0 items-center rounded-md p-2 text-sm font-medium"
+                isCurrentItem(item.href, item.name) ? "bg-gray-900 text-white font-bold" : "text-gray-300 hover:bg-white/5 hover:text-white",
+                "inline-flex shrink-0 items-center rounded-md p-1.5 text-sm font-medium sm:p-2"
               )}
             >
               <item.Icon aria-hidden="true" className="size-6" />
@@ -118,8 +121,8 @@ export default function Example() {
                 <Link
                   href="/"
                   onClick={closeGameMenu}
-                  aria-current={!isBelote ? "page" : undefined}
-                  className={`block rounded px-3 py-2 text-sm font-medium ${!isBelote ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+                  aria-current={!isTrickGame ? "page" : undefined}
+                  className={`block rounded px-3 py-2 text-sm font-medium ${!isTrickGame ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                 >
                   Tarot
                 </Link>
@@ -130,6 +133,14 @@ export default function Example() {
                   className={`block rounded px-3 py-2 text-sm font-medium ${isBelote ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                 >
                   Belote
+                </Link>
+                <Link
+                  href="/coinche"
+                  onClick={closeGameMenu}
+                  aria-current={isCoinche ? "page" : undefined}
+                  className={`block rounded px-3 py-2 text-sm font-medium ${isCoinche ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+                >
+                  Coinche
                 </Link>
               </div>
             </details>
