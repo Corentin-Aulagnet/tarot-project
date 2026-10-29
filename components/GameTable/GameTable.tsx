@@ -117,8 +117,13 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
                 </Link> 
               </td>
               {players.map(player => (
-                <td key={player.id} className="border px-2 py-2 text-center dark:text-white">
-                  {table[game.id]?.[player.id]?.toString() ?? "-"}
+                <td
+                  key={player.id}
+                  className="border px-2 py-2 text-center dark:text-white"
+                >
+                  <span className={game.taker_id === player.id ? "text-blue-600 dark:text-blue-400" : undefined}>
+                    {table[game.id]?.[player.id]?.toString() ?? "-"}
+                  </span>
                 </td>
               ))}
             </tr>
@@ -158,8 +163,10 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
                 {totals[player.id]?.toString() ?? "-"}
               </td>
               {games.map(game => (
-                <td key={game.id} className="game-results-date-cell border px-2 py-2 text-center">
-                  {table[game.id]?.[player.id]?.toString() ?? "-"}
+                <td key={game.id} className="game-results-date-cell border px-2 py-2 text-center" >
+                  <span className={game.taker_id === player.id ? "text-blue-600 dark:text-blue-400" : undefined}>
+                    {table[game.id]?.[player.id]?.toString() ?? "-"}
+                  </span>
                 </td>
               ))}
             </tr>
