@@ -45,6 +45,7 @@ import { Games,Players } from "../../utils/supabase/types";
 import Link from "next/link";
 import { formatGameDateTime } from "@/lib/dateUtils";
 import { getDefaultPlayerColor } from "@/lib/playerColors";
+import { Contract } from '../../lib/scoreUtils';
 
 /**
  * Props for the GamesTable component.
@@ -112,8 +113,8 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
             <tr key={game.id}>
               <td className="whitespace-nowrap border px-2 py-2 dark:bg-gray-700">
                 <Link href={`/games/${game.id}`}>
-                  {formatGameDateTime(game.created_at)}
-                </Link>
+                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{game.contract}</p>
+                </Link> 
               </td>
               {players.map(player => (
                 <td key={player.id} className="border px-2 py-2 text-center dark:text-white">
@@ -133,7 +134,7 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
             {games.map(game => (
               <th key={game.id} className="game-results-date-cell whitespace-nowrap border px-2 py-2">
                 <Link href={`/games/${game.id}`} className="block whitespace-nowrap">
-                  {formatGameDateTime(game.created_at)}
+                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{game.contract}</p>
                 </Link>
               </th>
             ))}
