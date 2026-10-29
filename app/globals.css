@@ -45,8 +45,8 @@ select option {
 }
 
 .new-game-form select[name="n_bouts_hand_start"] option[value=""],
-.new-game-form select[name="n_bouts_dog"] option[value=""],
-.new-game-form select[name="n_bouts_called"] option[value=""],
+.new-game-form select[name="n_bouts_dog"] option[value="0"],
+.new-game-form select[name="n_bouts_called"] option[value="0"],
 .new-game-form select[aria-label="Called Suit"] option[value=""] {
   color: #9ca3af;
 }

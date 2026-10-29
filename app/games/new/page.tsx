@@ -103,8 +103,8 @@ export default function NewGamePage({ gameId }: { gameId?: string }) {
                     setPointsAtt(String(selectedGame.points_att));
                     setNBouts(String(selectedGame.n_bouts));
                     setNBoutsHandStart(selectedGame.n_bouts_hand_start == null ? "" : String(selectedGame.n_bouts_hand_start));
-                    setNBoutsDog(selectedGame.n_bouts_dog == null ? "" : String(selectedGame.n_bouts_dog));
-                    setNBoutsCalled(selectedGame.n_bouts_called == null ? "" : String(selectedGame.n_bouts_called));
+                    setNBoutsDog(String(selectedGame.n_bouts_dog ?? 0));
+                    setNBoutsCalled(String(selectedGame.n_bouts_called ?? 0));
                     const misereTypes = selectedGame.misere_type_arr ?? (selectedGame.misere_type ? [selectedGame.misere_type] : []);
                     const misereIds = selectedGame.misere_player_id_arr ?? (selectedGame.misere_player_id ? [selectedGame.misere_player_id] : []);
                     const poigneeTypes = selectedGame.poignee_type_arr ?? (selectedGame.poignee_type ? [selectedGame.poignee_type] : []);
@@ -236,8 +236,8 @@ const handleChangePoigneeType = (index: number, value: string) => {
                     points_att: Number(pointsAtt),
                     n_bouts: Number(nBouts),
                     n_bouts_hand_start: nBoutsHandStart === "" ? null : Number(nBoutsHandStart),
-                    n_bouts_dog: nBoutsDog === "" ? null : Number(nBoutsDog),
-                    n_bouts_called: nBoutsCalled === "" ? null : Number(nBoutsCalled),
+                    n_bouts_dog: Number(nBoutsDog),
+                    n_bouts_called: Number(nBoutsCalled),
                     players_uid: players_uid.map(p => p.id),
                 };
                 const res = await fetch(editingGame ? "/api/update" : "/api/insert", {
@@ -397,10 +397,10 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       value={nBoutsDog}
                       onChange={(e) => setNBoutsDog(e.target.value)}
                       className={`w-full rounded border px-2 py-1.5 ${isDogBoutsValid ? "border-gray-300" : "border-red-500"}`}
-                      style={{ color: nBoutsDog === "" ? "#9ca3af" : undefined }}
+                      style={{ color: nBoutsDog === "0" ? "#9ca3af" : undefined }}
                     >
-                      <option value="" className="text-gray-400">Dog Bouts</option>
-                      {[0, 1, 2, 3].map((value) => <option key={value} value={value}>{value}</option>)}
+                      <option value="0" className="text-gray-400">Dog Bouts (0)</option>
+                      {[1, 2, 3].map((value) => <option key={value} value={value}>{value}</option>)}
                     </select>
                   </div>
                   <div className="min-w-0">
@@ -410,10 +410,10 @@ const handleChangePoigneeType = (index: number, value: string) => {
                       value={nBoutsCalled}
                       onChange={(e) => setNBoutsCalled(e.target.value)}
                       className={`w-full rounded border px-2 py-1.5 ${isCalledBoutsValid ? "border-gray-300" : "border-red-500"}`}
-                      style={{ color: nBoutsCalled === "" ? "#9ca3af" : undefined }}
+                      style={{ color: nBoutsCalled === "0" ? "#9ca3af" : undefined }}
                     >
-                      <option value="" className="text-gray-400">Called Bouts</option>
-                      {[0, 1, 2, 3].map((value) => <option key={value} value={value}>{value}</option>)}
+                      <option value="0" className="text-gray-400">Called Bouts (0)</option>
+                      {[1, 2, 3].map((value) => <option key={value} value={value}>{value}</option>)}
                     </select>
                   </div>
                   <div className="min-w-0">
