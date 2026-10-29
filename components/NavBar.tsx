@@ -43,10 +43,14 @@ export default function Example() {
   const gameMenuRef = useRef<HTMLDetailsElement>(null);
   const isBelote = currentRoute === "/belote" || currentRoute.startsWith("/belote/");
     const isCoinche = currentRoute === "/coinche" || currentRoute.startsWith("/coinche/");
+    const isChoisi = currentRoute === "/choisi" || currentRoute.startsWith("/choisi/");
     const isTrickGame = isBelote || isCoinche;
-    const activeGame = isBelote ? "BELOTE" : isCoinche ? "COINCHE" : "TAROT";
+    const isTarot = !isTrickGame && !isChoisi;
+    const activeGame = isChoisi ? "CHOISI" : isBelote ? "BELOTE" : isCoinche ? "COINCHE" : "TAROT";
     const gamePrefix = isCoinche ? "/coinche" : "/belote";
-    const gameNavigation = isTrickGame
+    const gameNavigation = isChoisi
+      ? [{ name: "Home", href: "/choisi", Icon: HomeIcon }]
+      : isTrickGame
       ? [
           { name: "Home", href: gamePrefix, Icon: HomeIcon },
           { name: "New Game", href: `${gamePrefix}/new`, Icon: PlusCircleIcon },
@@ -119,10 +123,18 @@ export default function Example() {
               </summary>
               <div className="absolute right-0 top-full mt-2 min-w-40 rounded-md border border-gray-600 bg-gray-900 p-1 shadow-lg">
                 <Link
+                  href="/choisi"
+                  onClick={closeGameMenu}
+                  aria-current={isChoisi ? "page" : undefined}
+                  className={`block rounded px-3 py-2 text-sm font-medium ${isChoisi ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+                >
+                  Choisi
+                </Link>
+                <Link
                   href="/"
                   onClick={closeGameMenu}
-                  aria-current={!isTrickGame ? "page" : undefined}
-                  className={`block rounded px-3 py-2 text-sm font-medium ${!isTrickGame ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
+                  aria-current={isTarot ? "page" : undefined}
+                  className={`block rounded px-3 py-2 text-sm font-medium ${isTarot ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"}`}
                 >
                   Tarot
                 </Link>
