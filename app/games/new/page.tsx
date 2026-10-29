@@ -28,8 +28,8 @@ export default function NewGamePage({ gameId }: { gameId?: string }) {
     const pointsDef = pointsAtt === "" ? "" : String(91 - Number(pointsAtt));
     const [nBouts, setNBouts] = useState("");
     const [nBoutsHandStart, setNBoutsHandStart] = useState("");
-    const [nBoutsDog, setNBoutsDog] = useState("");
-    const [nBoutsCalled, setNBoutsCalled] = useState("");
+    const [nBoutsDog, setNBoutsDog] = useState("0");
+    const [nBoutsCalled, setNBoutsCalled] = useState("0");
     const isValidBout = (value: string) => value === ""
         || (Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 3);
     const isWonBoutsValid = nBouts !== "" && isValidBout(nBouts);
