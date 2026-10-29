@@ -228,18 +228,17 @@ export default function Post({
   const dogBoutsKeptByPlayer = new Map<string, { bouts: number; takes: number }>();
   const calledBoutsByPlayer = new Map<string, { bouts: number; takes: number }>();
   games.forEach(game => {
-    if (game.contract !== "Garde-Contre" && game.n_bouts_dog !== null) {
+    if (game.created_at.slice(0, 10) < "2026-10-23") return;
+    if (game.contract !== "Garde-Contre") {
       const stats = dogBoutsKeptByPlayer.get(game.taker_id) ?? { bouts: 0, takes: 0 };
-      stats.bouts += game.n_bouts_dog;
+      stats.bouts += game.n_bouts_dog ?? 0;
       stats.takes += 1;
       dogBoutsKeptByPlayer.set(game.taker_id, stats);
     }
-    if (game.created_at.slice(0, 10) === "2026-10-23") {
-      const calledStats = calledBoutsByPlayer.get(game.taker_id) ?? { bouts: 0, takes: 0 };
-      calledStats.bouts += game.n_bouts_called ?? 0;
-      calledStats.takes += 1;
-      calledBoutsByPlayer.set(game.taker_id, calledStats);
-    }
+    const calledStats = calledBoutsByPlayer.get(game.taker_id) ?? { bouts: 0, takes: 0 };
+    calledStats.bouts += game.n_bouts_called ?? 0;
+    calledStats.takes += 1;
+    calledBoutsByPlayer.set(game.taker_id, calledStats);
   });
   const mostDogBoutsKept = [...dogBoutsKeptByPlayer.entries()]
       .filter(([, stats]) => stats.takes > 0)
