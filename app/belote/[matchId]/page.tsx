@@ -1,5 +1,6 @@
-import TrickGameDetails from "@/components/TrickGameDetails";
+import TrickGameForm from "@/components/TrickGameForm";
 
-export default function BeloteGameDetailsPage() {
-  return <TrickGameDetails variant="belote" />;
+export default async function EditBeloteGamePage({ params }: { params: Promise<{ matchId: string }> }) {
+  const { matchId } = await params;
+  return <TrickGameForm variant="belote" gameId={matchId} />;
 }

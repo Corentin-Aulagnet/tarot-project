@@ -1,26 +1,43 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+/**
+ * Belote / Coinche home page: same layout as the Tarot home page (app/post.tsx).
+ * Month chart + table, then all-time chart + table, with a recent/all players toggle.
+ * Scores are computed over the full history so held 81-point carries stay correct inside a month.
+ */
+
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Players } from "@/utils/supabase/types";
+import { GamesTable } from "@/components/GameTable/GameTable";
+import { filterInMonth } from "@/lib/gameUtils";
 import {
+  aggregateTrickGameIterativeScores,
   BeloteGame,
+  buildTrickGamePlayerTotals,
   CoincheGame,
-  formatTrickGameDate,
+  getRecentTrickGamePlayers,
   getTrickGameLoadError,
+  isTrickGameTaker,
   scoreTrickGameHistory,
+  sumTrickGamePlayerTotals,
   TrickGameRecord,
   TrickGameVariant,
 } from "@/lib/trickGames";
 
+const LineChart = dynamic(() => import("@/components/LineChart"), {
+  ssr: false,
+});
+
 export default function TrickGameHistory({ variant }: { variant: TrickGameVariant }) {
   const isCoinche = variant === "coinche";
-  const gameTitle = isCoinche ? "Coinche" : "Belote";
   const [games, setGames] = useState<TrickGameRecord[]>([]);
   const [players, setPlayers] = useState<Players[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [monthIndex, setMonthIndex] = useState(new Date().getUTCMonth());
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -44,81 +61,95 @@ export default function TrickGameHistory({ variant }: { variant: TrickGameVarian
     return () => { active = false; };
   }, [isCoinche, variant]);
 
-  const playersById = new Map(players.map(player => [player.id, player]));
-  const scores = scoreTrickGameHistory(variant, games).scoresByGameId;
+  const scores = useMemo(() => scoreTrickGameHistory(variant, games).scoresByGameId, [variant, games]);
+  const recentPlayers = useMemo(() => getRecentTrickGamePlayers(games, players), [games, players]);
+  const displayedPlayers = showAllPlayers || recentPlayers.length === 0 ? players : recentPlayers;
+  const table = useMemo(() => buildTrickGamePlayerTotals(games, scores), [games, scores]);
+  const totals = useMemo(() => sumTrickGamePlayerTotals(players, table), [players, table]);
+  const gamesInMonth = useMemo(() => filterInMonth(games, monthIndex), [games, monthIndex]);
+  const monthlyTable = useMemo(() => buildTrickGamePlayerTotals(gamesInMonth, scores), [gamesInMonth, scores]);
+  const monthlyTotals = useMemo(() => sumTrickGamePlayerTotals(players, monthlyTable), [players, monthlyTable]);
+  const chartData = useMemo(
+    () => aggregateTrickGameIterativeScores(gamesInMonth, players, monthlyTable),
+    [gamesInMonth, players, monthlyTable]
+  );
+  const allGamesChartData = useMemo(
+    () => aggregateTrickGameIterativeScores(games, players, table),
+    [games, players, table]
+  );
+  const monthName = new Date(0, monthIndex).toLocaleString("default", { month: "long" });
+
+  const tableProps = {
+    players: displayedPlayers,
+    recentPlayers: !showAllPlayers,
+    getGameHref: (game: TrickGameRecord) => `/${variant}/${game.id}`,
+    getGameLabel: (game: TrickGameRecord) => isCoinche
+      ? [
+          game.capot_announced ? "Capot" : game.contract_points,
+          game.contract_type,
+          game.surcoinched ? "×4" : game.coinched ? "×2" : null,
+        ].filter(part => part != null && part !== "").join(" ")
+      : game.contract_type,
+    isTaker: isTrickGameTaker,
+    getPlayerHref: (playerId: string) => `/${variant}/players/${playerId}`,
+  };
+
+  const playersToggle = (
+    <button
+      type="button"
+      onClick={() => setShowAllPlayers(showAll => !showAll)}
+      className="rounded border px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+    >
+      {showAllPlayers ? "Show recent players" : "Show all players"}
+    </button>
+  );
+
+  if (loading) return <main className="p-6 text-sm text-gray-400">Loading games…</main>;
+  if (error) return <main className="p-6"><p role="alert" className="text-sm text-red-400">{error}</p></main>;
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-4 p-3 sm:p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-extrabold">{gameTitle}</h1>
-          <p className="text-xs text-gray-400">Single games · zero-sum player scoring</p>
-        </div>
-        <Link href={`/${variant}/new`} className="rounded bg-gray-800 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700">
-          New Game
-        </Link>
+    <main className="p-6">
+      <div className="space-y-8">
+        <section className="pb-4">
+          <h1 className="mb-2 text-xl font-extrabold">Month Data</h1>
+          <div className="h-[min(42vh,22.4rem)] min-h-[11.2rem] w-full sm:h-[min(45.5vh,26.6rem)]">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <label htmlFor="month-select" className="sr-only">Select month</label>
+              <select
+                id="month-select"
+                value={monthIndex}
+                onChange={event => setMonthIndex(Number(event.target.value))}
+                aria-label="Select month"
+              >
+                {Array.from({ length: 12 }, (_, index) => (
+                  <option key={index} value={index}>
+                    {new Date(0, index).toLocaleString("default", { month: "long" })}
+                  </option>
+                ))}
+              </select>
+              {playersToggle}
+            </div>
+            <LineChart data={chartData} players={displayedPlayers} lastPlayers={displayedPlayers} zoomIndex={10} />
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-2 text-xl font-extrabold">Games for {monthName}</h2>
+          <GamesTable {...tableProps} games={gamesInMonth} table={monthlyTable} totals={monthlyTotals} />
+        </section>
+        <section>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-extrabold">All Time Data</h2>
+            {playersToggle}
+          </div>
+          <div className="h-[min(42vh,22.4rem)] min-h-[11.2rem] w-full sm:h-[min(45.5vh,26.6rem)]">
+            <LineChart data={allGamesChartData} players={displayedPlayers} lastPlayers={displayedPlayers} zoomIndex={10} />
+          </div>
+        </section>
+        <section>
+          <h2 className="mb-2 text-xl font-extrabold">All Games</h2>
+          <GamesTable {...tableProps} games={games} table={table} totals={totals} />
+        </section>
       </div>
-
-      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
-      <section className="space-y-2">
-        <h2 className="text-base font-bold">Games</h2>
-        {loading ? <p className="text-sm text-gray-400">Loading games…</p> : error ? null : games.length === 0 ? (
-          <p className="text-sm text-gray-400">No {gameTitle} games recorded yet.</p>
-        ) : (
-          <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] gap-2">
-            {games.map(game => {
-              const score = scores.get(game.id);
-              if (!score) return null;
-              return (
-                <li key={game.id}>
-                  <Link href={`/${variant}/${game.id}`} className="block rounded border border-gray-700 bg-gray-900 p-3 hover:border-gray-500">
-                    <div className="flex items-start justify-between gap-2 text-xs text-gray-400">
-                      <time>{formatTrickGameDate(game.created_at)}</time>
-                      <span>{game.contract_type ?? gameTitle}</span>
-                    </div>
-                    <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium">
-                          <span style={{ color: playersById.get(game.team1_player1_id)?.preferred_color ?? undefined }}>
-                            {playersById.get(game.team1_player1_id)?.Name ?? "Player"}
-                          </span>
-                          {" & "}
-                          <span style={{ color: playersById.get(game.team1_player2_id)?.preferred_color ?? undefined }}>
-                            {playersById.get(game.team1_player2_id)?.Name ?? "Player"}
-                          </span>
-                        </p>
-                        <p className={`text-lg font-bold ${score.team1 >= 0 ? "text-green-300" : "text-red-300"}`}>
-                          {score.team1 > 0 ? "+" : ""}{score.team1}
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-500">vs</span>
-                      <div className="min-w-0 text-right">
-                        <p className="truncate font-medium">
-                          <span style={{ color: playersById.get(game.team2_player1_id)?.preferred_color ?? undefined }}>
-                            {playersById.get(game.team2_player1_id)?.Name ?? "Player"}
-                          </span>
-                          {" & "}
-                          <span style={{ color: playersById.get(game.team2_player2_id)?.preferred_color ?? undefined }}>
-                            {playersById.get(game.team2_player2_id)?.Name ?? "Player"}
-                          </span>
-                        </p>
-                        <p className={`text-lg font-bold ${score.team2 >= 0 ? "text-green-300" : "text-red-300"}`}>
-                          {score.team2 > 0 ? "+" : ""}{score.team2}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Cards {game.team1_points}–{162 - game.team1_points}
-                      {game.belote_team ? ` · Team ${game.belote_team} Belote` : ""}
-                      {score.heldPoints ? " · 81 held" : ""}
-                    </p>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
     </main>
   );
 }

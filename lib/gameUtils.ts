@@ -18,7 +18,7 @@ export function filterMoreRecent(games:Games[],date:Date) {
   return filteredGames;
 }
 
-export function filterInMonth(games:Games[], monthIndex:number) {
+export function filterInMonth<G extends Pick<Games, "created_at">>(games:G[], monthIndex:number) {
   const filteredGames = games.filter(game => {
     const gameDate = new Date(game.created_at);
     return gameDate.getUTCMonth() === monthIndex;

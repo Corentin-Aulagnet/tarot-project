@@ -1,5 +1,6 @@
-import TrickGameDetails from "@/components/TrickGameDetails";
+import TrickGameForm from "@/components/TrickGameForm";
 
-export default function CoincheGameDetailsPage() {
-  return <TrickGameDetails variant="coinche" />;
+export default async function EditCoincheGamePage({ params }: { params: Promise<{ gameId: string }> }) {
+  const { gameId } = await params;
+  return <TrickGameForm variant="coinche" gameId={gameId} />;
 }

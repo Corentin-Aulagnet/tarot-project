@@ -45,7 +45,6 @@ import { Games,Players } from "../../utils/supabase/types";
 import Link from "next/link";
 import { formatGameDateTime } from "@/lib/dateUtils";
 import { getDefaultPlayerColor } from "@/lib/playerColors";
-import { Contract } from '../../lib/scoreUtils';
 
 /**
  * Props for the GamesTable component.
@@ -55,13 +54,25 @@ import { Contract } from '../../lib/scoreUtils';
  * @param table - Nested record mapping gameId → playerId → score (per-game scores)
  * @param totals - Record mapping playerId → cumulative score (totals row)
  */
-export type GameTableProps={
-  games:Games[],
+export type GameTableProps<G extends TableGame = Games>={
+  games:G[],
   players:Players[],
-  table: Record<Games['id'], Record<Players['id'],number>>
+  table: Record<string, Record<Players['id'],number>>
   totals: Record<Players['id'],number>,
   recentPlayers?: boolean,
+  getGameHref?: (game: G) => string,
+  getGameLabel?: (game: G) => string | null,
+  isTaker?: (game: G, playerId: Players['id']) => boolean,
+  getPlayerHref?: (playerId: Players['id']) => string,
 }
+
+type TableGame = { id: string, created_at: string };
+
+// Defaults keep the Tarot behaviour; Belote and Coinche pass their own.
+const tarotGameHref = (game: TableGame) => `/games/${game.id}`;
+const tarotGameLabel = (game: TableGame) => (game as Games).contract;
+const tarotIsTaker = (game: TableGame, playerId: Players['id']) => (game as Games).taker_id === playerId;
+const tarotPlayerHref = (playerId: Players['id']) => `/players/${playerId}`;
 
 /**
  * GamesTable: Displays all Tarot games and scores in a sticky-header table.
@@ -69,7 +80,17 @@ export type GameTableProps={
  * @param props GameTableProps
  * @returns Rendered table with game rows and player score columns
  */
-export function GamesTable({ games, players, table,totals, recentPlayers = false }:GameTableProps) {
+export function GamesTable<G extends TableGame = Games>({
+  games,
+  players,
+  table,
+  totals,
+  recentPlayers = false,
+  getGameHref = tarotGameHref,
+  getGameLabel = tarotGameLabel,
+  isTaker = tarotIsTaker,
+  getPlayerHref = tarotPlayerHref,
+}:GameTableProps<G>) {
   const totalCellStyle = (score: number) => ({
     backgroundColor: score >= 0 ? "#6f9c7e" : "#b9737c",
   });
@@ -87,7 +108,7 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
               <th key={player.id} className="whitespace-nowrap border px-2 py-2">
                 <Link
                   className="text-center"
-                  href={`/players/${player.id}`}
+                  href={getPlayerHref(player.id)}
                   style={{ color: getDefaultPlayerColor(player, players) }}
                 >
                   {player.Name}
@@ -112,8 +133,8 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
           {games.map(game => (
             <tr key={game.id}>
               <td className="whitespace-nowrap border px-2 py-2 dark:bg-gray-700">
-                <Link href={`/games/${game.id}`}>
-                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{game.contract}</p>
+                <Link href={getGameHref(game)}>
+                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{getGameLabel(game)}</p>
                 </Link> 
               </td>
               {players.map(player => (
@@ -121,7 +142,7 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
                   key={player.id}
                   className="border px-2 py-2 text-center dark:text-white"
                 >
-                  <span className={game.taker_id === player.id ? "text-blue-600 dark:text-blue-400" : undefined}>
+                  <span className={isTaker(game, player.id) ? "text-blue-600 dark:text-blue-400" : undefined}>
                     {table[game.id]?.[player.id]?.toString() ?? "-"}
                   </span>
                 </td>
@@ -138,8 +159,8 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
             <th className="border px-2 py-2">Total</th>
             {games.map(game => (
               <th key={game.id} className="game-results-date-cell whitespace-nowrap border px-2 py-2">
-                <Link href={`/games/${game.id}`} className="block whitespace-nowrap">
-                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{game.contract}</p>
+                <Link href={getGameHref(game)} className="block whitespace-nowrap">
+                  {formatGameDateTime(game.created_at)}<br/><p className="font-style: italic">{getGameLabel(game)}</p>
                 </Link>
               </th>
             ))}
@@ -150,7 +171,7 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
             <tr key={player.id}>
               <th className="sticky left-0 z-20 whitespace-nowrap border bg-white px-2 py-2 text-left dark:bg-gray-900">
                 <Link
-                  href={`/players/${player.id}`}
+                  href={getPlayerHref(player.id)}
                   style={{ color: getDefaultPlayerColor(player, players) }}
                 >
                   {player.Name}
@@ -164,7 +185,7 @@ export function GamesTable({ games, players, table,totals, recentPlayers = false
               </td>
               {games.map(game => (
                 <td key={game.id} className="game-results-date-cell border px-2 py-2 text-center" >
-                  <span className={game.taker_id === player.id ? "text-blue-600 dark:text-blue-400" : undefined}>
+                  <span className={isTaker(game, player.id) ? "text-blue-600 dark:text-blue-400" : undefined}>
                     {table[game.id]?.[player.id]?.toString() ?? "-"}
                   </span>
                 </td>

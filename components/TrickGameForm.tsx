@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import { Players } from "@/utils/supabase/types";
 import {
+  formatTrickGameDate,
   getTrickGameLoadError,
   getTrickGameConfigurationKey,
   scoreTrickGame,
@@ -29,21 +30,16 @@ const playerFields: { field: PlayerField; seat: string; team: "1" | "2" }[] = [
   { field: "team1_player2_id", seat: "South", team: "1" },
 ];
 
-const teamTextClasses = {
-  "1": "text-violet-300",
-  "2": "text-orange-300",
-};
+// Soft pastel palette shared by the form; layout and sizes follow the Tarot new game form.
+const TEAM_COLORS = { "1": "#a9c9ec", "2": "#f3c4a2" } as const;
+const PLACEHOLDER_COLOR = "#9ca3af";
+const SOFT_RED = "#f0a0a0";
+const SOFT_GREEN = "#a3d9ad";
+const SOFT_AMBER = "#f1d7a1";
 
-const teamButtonClasses = (team: "1" | "2", selected: boolean) => {
-  const colors = team === "1"
-    ? selected
-      ? "border-violet-200 bg-violet-300 text-gray-900"
-      : "border-violet-900 bg-violet-950 text-white hover:bg-violet-900"
-    : selected
-      ? "border-orange-200 bg-orange-300 text-gray-900"
-      : "border-orange-900 bg-orange-950 text-white hover:bg-orange-900";
-  return `rounded border px-2.5 py-1 text-xs font-medium ${colors}`;
-};
+const suitColor = (suit: string) => suit === "♥" || suit === "♦" ? SOFT_RED : undefined;
+const formatScore = (score: number) => `${score > 0 ? "+" : ""}${score}`;
+const contractPointOptions = Array.from({ length: 9 }, (_, index) => 80 + index * 10);
 
 const emptyTeams: TeamSelection = {
   team1_player1_id: "",
@@ -54,14 +50,16 @@ const emptyTeams: TeamSelection = {
 
 const contractTypes = ["♥", "♦", "♣", "♠", "No Trump", "All Trumps"];
 
-type Props = { variant: TrickGameVariant };
+type Props = { variant: TrickGameVariant; gameId?: string };
 
-export default function TrickGameForm({ variant }: Props) {
+export default function TrickGameForm({ variant, gameId }: Props) {
   const router = useRouter();
   const isCoinche = variant === "coinche";
-  const title = isCoinche ? "New Coinche Game" : "New Belote Game";
+  const gameTitle = isCoinche ? "Coinche" : "Belote";
   const [players, setPlayers] = useState<Players[]>([]);
   const [games, setGames] = useState<TrickGameRecord[]>([]);
+  const [editingGame, setEditingGame] = useState<TrickGameRecord | null>(null);
+  const title = editingGame ? `Edit ${gameTitle} Game` : `New ${gameTitle} Game`;
   const [teams, setTeams] = useState<TeamSelection>(emptyTeams);
   const [playerList, setPlayerList] = useState<VisiblePlayerList>("recent");
   const [team1PointsInput, setTeam1PointsInput] = useState("");
@@ -97,7 +95,22 @@ export default function TrickGameForm({ variant }: Props) {
         setPlayers(allPlayers);
         setGames(gameHistory);
 
-        const lastGame = gameHistory[0];
+        const selectedGame = gameId ? gameHistory.find(game => game.id === gameId) : undefined;
+        const lastGame = selectedGame ?? gameHistory[0];
+        if (gameId && !selectedGame) {
+          setError(`This ${variant} game could not be found.`);
+        } else if (selectedGame) {
+          setEditingGame(selectedGame);
+          setContractTeam(String(selectedGame.contract_team) as TeamChoice);
+          setContractType(selectedGame.contract_type ?? "");
+          setContractPoints(selectedGame.contract_points == null ? "" : String(selectedGame.contract_points));
+          setBeloteTeam(selectedGame.belote_team == null ? "" : String(selectedGame.belote_team));
+          setCoinched(selectedGame.coinched ?? false);
+          setSurcoinched(selectedGame.surcoinched ?? false);
+          setCapotAnnounced(selectedGame.capot_announced ?? false);
+          setTeam1PointsInput(String(selectedGame.team1_points));
+          setTeam2PointsInput(String(162 - selectedGame.team1_points));
+        }
         if (lastGame) {
           setTeams({
             team1_player1_id: lastGame.team1_player1_id,
@@ -118,7 +131,7 @@ export default function TrickGameForm({ variant }: Props) {
     };
     void load();
     return () => { active = false; };
-  }, [isCoinche, variant]);
+  }, [gameId, isCoinche, variant]);
 
   const selectedPlayerIds = Object.values(teams);
   const validTeams = selectedPlayerIds.every(Boolean) && new Set(selectedPlayerIds).size === 4;
@@ -134,7 +147,16 @@ export default function TrickGameForm({ variant }: Props) {
     playerList === "all" || recentPlayerIds.size === 0
       || recentPlayerIds.has(player.id) || selectedPlayerIds.includes(player.id)
   );
-  const history = useMemo(() => scoreTrickGameHistory(variant, games), [games, variant]);
+  // When editing, held points can only come from games played before the edited one.
+  const history = useMemo(() => scoreTrickGameHistory(
+    variant,
+    editingGame
+      ? games.filter(game =>
+          game.created_at.localeCompare(editingGame.created_at) < 0
+          || (game.created_at === editingGame.created_at && game.id.localeCompare(editingGame.id) < 0)
+        )
+      : games
+  ), [editingGame, games, variant]);
   const currentGame = {
     team1_player1_id: teams.team1_player1_id,
     team1_player2_id: teams.team1_player2_id,
@@ -203,76 +225,104 @@ export default function TrickGameForm({ variant }: Props) {
 
     setSaving(true);
     setError(null);
-    const { data, error: insertError } = isCoinche
-      ? await supabase.from("CoincheGames").insert({
-          ...commonData,
-          contract_points: numericContractPoints,
-          coinched,
-          surcoinched,
-          capot_announced: capotAnnounced,
-        }).select("id").single()
-      : await supabase.from("BeloteGames").insert(commonData).select("id").single();
+    const coincheData = {
+      ...commonData,
+      contract_points: numericContractPoints,
+      coinched,
+      surcoinched,
+      capot_announced: capotAnnounced,
+    };
+    const { error: saveError } = editingGame
+      ? isCoinche
+        ? await supabase.from("CoincheGames").update(coincheData).eq("id", editingGame.id)
+        : await supabase.from("BeloteGames").update(commonData).eq("id", editingGame.id)
+      : isCoinche
+        ? await supabase.from("CoincheGames").insert(coincheData)
+        : await supabase.from("BeloteGames").insert(commonData);
     setSaving(false);
 
-    if (insertError || !data) {
-      if (insertError) console.error(`Could not save ${variant} game:`, insertError);
-      setError(`Could not save this ${variant} game. Please try again.`);
+    if (saveError) {
+      console.error(editingGame ? `Could not update ${variant} game:` : `Could not save ${variant} game:`, saveError);
+      setError(editingGame
+        ? `Could not save changes to this ${variant} game. Please try again.`
+        : `Could not save this ${variant} game. Please try again.`);
       return;
     }
-    router.push(`/${variant}/${data.id}`);
+    alert(editingGame ? "Game changes saved" : "Game created");
+    router.push(`/${variant}`);
   };
 
-  if (loading) return <main className="p-4 text-sm text-gray-300">Loading players…</main>;
-  if (error && players.length === 0) {
-    return <main className="p-4"><p role="alert" className="text-sm text-red-400">{error}</p></main>;
+  if (loading) return <main className="p-3">{gameId ? "Loading game..." : "Loading players..."}</main>;
+  if ((error && players.length === 0) || (gameId && !editingGame)) {
+    return <main className="p-3"><p role="alert" className="text-red-400">{error}</p></main>;
   }
   if (players.length < 4) {
     return (
-      <main className="space-y-2 p-4 text-sm text-gray-300">
+      <main className="p-3">
         {error && <p role="alert" className="text-red-400">{error}</p>}
         <p>Add at least four players before recording a game.</p>
       </main>
     );
   }
 
-  return (
-    <main className="w-full space-y-2 p-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <h1 className="text-base font-bold">{title}</h1>
-        </div>
-      </div>
-      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
+  const handleTeam1PointsChange = (value: string) => {
+    setTeam1PointsInput(value);
+    const points = Number(value);
+    setTeam2PointsInput(value !== "" && Number.isInteger(points) && points >= 0 && points <= 162
+      ? String(162 - points)
+      : "");
+  };
+  const handleTeam2PointsChange = (value: string) => {
+    setTeam2PointsInput(value);
+    const points = Number(value);
+    setTeam1PointsInput(value !== "" && Number.isInteger(points) && points >= 0 && points <= 162
+      ? String(162 - points)
+      : "");
+  };
 
-      <form onSubmit={handleSubmit} className="new-game-form space-y-2 rounded p-2.5 shadow sm:p-3">
-        <section className="space-y-1.5">
+  return (
+    <main className="p-3">
+      <form onSubmit={handleSubmit} className="new-game-form flex w-auto flex-col gap-3 rounded p-3 shadow">
+        <h1 className="text-lg font-bold">{title}</h1>
+
+        <div className="flex flex-col gap-2 rounded border border-gray-300 p-2">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-medium">Select Players</h2>
-            <button type="button" onClick={() => setPlayerList(previous => previous === "recent" ? "all" : "recent")}
+            <h2 className="font-medium">Select Players</h2>
+            <button
+              type="button"
+              onClick={() => setPlayerList(previous => previous === "recent" ? "all" : "recent")}
               aria-pressed={playerList === "all"}
-              className="rounded border border-gray-600 bg-gray-800 px-2 py-1 text-xs text-gray-300 hover:bg-gray-700">
+              className="rounded border px-3 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               {playerList === "all" ? "Show recent players" : "Show all players"}
             </button>
           </div>
-          <div className="grid w-full grid-cols-2 gap-1.5">
+          {playerList === "recent" && recentPlayerIds.size === 0 && (
+            <p className="text-sm">No games yet. All players are shown.</p>
+          )}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {playerFields.map(({ field, seat, team }) => (
-              <label key={field} className="flex w-full flex-col gap-1 text-xs font-medium text-gray-300">
-                <span>{seat} · <span className={teamTextClasses[team]}>Team {team}</span></span>
+              <label key={field} className="flex min-w-0 flex-col gap-1 text-sm">
+                <span>{seat} · <span style={{ color: TEAM_COLORS[team] }}>Team {team}</span></span>
                 <select
+                  aria-label={`${seat} player`}
                   value={teams[field]}
                   onChange={event => setTeams(previous => ({ ...previous, [field]: event.target.value }))}
+                  className="w-full rounded border px-2 py-1.5"
                   style={{
                     color: players.find(player => player.id === teams[field])?.preferred_color
-                      ?? (teams[field] ? undefined : "#9ca3af"),
+                      ?? (teams[field] ? undefined : PLACEHOLDER_COLOR),
                   }}
-                  className="w-full rounded border border-gray-600 bg-gray-950 px-2 py-1 text-sm"
                   required
                 >
-                  <option value="">Select player</option>
+                  <option value="" style={{ color: PLACEHOLDER_COLOR }}>Player</option>
                   {visiblePlayers.map(player => (
-                    <option key={player.id} value={player.id}
+                    <option
+                      key={player.id}
+                      value={player.id}
                       style={{ color: player.preferred_color ?? undefined }}
-                      disabled={selectedPlayerIds.includes(player.id) && teams[field] !== player.id}>
+                      disabled={selectedPlayerIds.includes(player.id) && teams[field] !== player.id}
+                    >
                       {player.Name}
                     </option>
                   ))}
@@ -280,125 +330,140 @@ export default function TrickGameForm({ variant }: Props) {
               </label>
             ))}
           </div>
-          {playerList === "recent" && recentPlayerIds.size === 0 && (
-            <p className="text-center text-xs text-gray-500">No games yet. All players are shown.</p>
+        </div>
+
+        <section className="flex flex-col gap-3 rounded border border-gray-300 p-3">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <select
+              aria-label="Takers"
+              value={contractTeam}
+              onChange={event => setContractTeam(event.target.value as TeamChoice)}
+              className="w-full rounded border px-2 py-1.5"
+              style={{ color: contractTeam ? TEAM_COLORS[contractTeam] : PLACEHOLDER_COLOR }}
+              required
+            >
+              <option value="" style={{ color: PLACEHOLDER_COLOR }}>Takers</option>
+              <option value="1" style={{ color: TEAM_COLORS["1"] }}>Team 1</option>
+              <option value="2" style={{ color: TEAM_COLORS["2"] }}>Team 2</option>
+            </select>
+            <select
+              aria-label="Called Suit"
+              value={contractType}
+              onChange={event => setContractType(event.target.value)}
+              className="w-full rounded border px-2 py-1.5"
+              style={{ color: contractType ? suitColor(contractType) : PLACEHOLDER_COLOR }}
+            >
+              <option value="" style={{ color: PLACEHOLDER_COLOR }}>Called Suit</option>
+              {contractTypes.map(type => (
+                <option key={type} value={type} style={{ color: suitColor(type) ?? "#f9fafb" }}>{type}</option>
+              ))}
+            </select>
+            {isCoinche && (
+              <select
+                aria-label="Contract"
+                value={contractPoints}
+                onChange={event => setContractPoints(event.target.value)}
+                className="w-full rounded border px-2 py-1.5"
+                style={{ color: contractPoints ? undefined : PLACEHOLDER_COLOR }}
+                required
+              >
+                <option value="" style={{ color: PLACEHOLDER_COLOR }}>Contract</option>
+                {contractPointOptions.map(points => <option key={points} value={points}>{points}</option>)}
+              </select>
+            )}
+            <select
+              aria-label="Belote / Rebelote"
+              value={beloteTeam}
+              onChange={event => setBeloteTeam(event.target.value)}
+              className="w-full rounded border px-2 py-1.5"
+              style={{ color: beloteTeam === "1" || beloteTeam === "2" ? TEAM_COLORS[beloteTeam] : PLACEHOLDER_COLOR }}
+            >
+              <option value="" style={{ color: PLACEHOLDER_COLOR }}>Belote (none)</option>
+              <option value="1" style={{ color: TEAM_COLORS["1"] }}>Belote · Team 1</option>
+              <option value="2" style={{ color: TEAM_COLORS["2"] }}>Belote · Team 2</option>
+            </select>
+          </div>
+
+          {isCoinche && (
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={coinched}
+                  onChange={event => {
+                    setCoinched(event.target.checked);
+                    if (!event.target.checked) setSurcoinched(false);
+                  }}
+                />
+                Coinched ×2
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={surcoinched}
+                  disabled={!coinched}
+                  onChange={event => setSurcoinched(event.target.checked)}
+                />
+                Sur-coinched ×4
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={capotAnnounced}
+                  onChange={event => setCapotAnnounced(event.target.checked)}
+                />
+                Capot annoncé
+              </label>
+            </div>
+          )}
+
+          <div className="flex flex-wrap justify-center gap-4">
+            {([
+              { team: "1", value: team1PointsInput, onChange: handleTeam1PointsChange, score: preview?.team1 },
+              { team: "2", value: team2PointsInput, onChange: handleTeam2PointsChange, score: preview?.team2 },
+            ] as const).map(({ team, value, onChange, score }) => (
+              <label key={team} className="flex flex-col gap-1 font-medium">
+                <span className="flex items-baseline gap-3">
+                  <span style={{ color: TEAM_COLORS[team] }}>Team {team}</span>
+                  {score !== undefined && (
+                    <span className="font-semibold" style={{ color: score >= 0 ? SOFT_GREEN : SOFT_RED }}>
+                      {formatScore(score)}
+                    </span>
+                  )}
+                </span>
+                <input
+                  aria-label={`Team ${team} card points`}
+                  className="w-[5.5rem] rounded border px-2 py-1.5 text-base"
+                  type="number"
+                  min={0}
+                  max={162}
+                  step={1}
+                  required
+                  placeholder="Points"
+                  value={value}
+                  onChange={event => onChange(event.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+
+          {(pendingPoints > 0 || (preview?.heldPoints ?? 0) > 0) && (
+            <div className="text-center text-sm" style={{ color: SOFT_AMBER }} aria-live="polite">
+              {pendingPoints > 0 && <p>Includes {pendingPoints} held points from the previous 81–81 game with this lineup.</p>}
+              {preview && preview.heldPoints > 0 && <p>Takers&apos; 81 points are held for the next game with this lineup.</p>}
+            </div>
           )}
         </section>
 
-        <div className="grid w-full grid-cols-2 gap-1.5">
-          <fieldset className="space-y-1">
-            <legend className="text-xs font-medium text-gray-300">Takers</legend>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Takers">
-              {(["1", "2"] as const).map(team => (
-                <button key={team} type="button" aria-pressed={contractTeam === team}
-                  onClick={() => setContractTeam(team)}
-                  className={teamButtonClasses(team, contractTeam === team)}>
-                  Team {team}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          <label className="flex flex-col gap-1 text-sm font-medium text-gray-300">
-            Called colour
-            <select value={contractType} onChange={event => setContractType(event.target.value)}
-              className={`w-full rounded border border-gray-600 bg-gray-950 px-2 py-1 text-sm ${contractType ? "text-white" : "text-gray-400"}`}>
-              <option value="" className="text-gray-400">Not entered</option>
-              {contractTypes.map(type => <option key={type} value={type}>{type}</option>)}
-            </select>
-          </label>
-          <fieldset className="space-y-1">
-            <legend className="text-xs font-medium text-gray-300">Belote / Rebelote</legend>
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Belote / Rebelote team">
-              {(["1", "2"] as const).map(team => (
-                <button key={team} type="button" aria-pressed={beloteTeam === team}
-                  onClick={() => setBeloteTeam(previous => previous === team ? "" : team)}
-                  className={teamButtonClasses(team, beloteTeam === team)}>
-                  Team {team}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-        </div>
+        {error && <p role="alert" className="text-red-400">{error}</p>}
 
-        {isCoinche && (
-          <fieldset className="flex w-full flex-wrap gap-x-3 gap-y-1 rounded border border-gray-700 px-2 py-1.5">
-            <legend className="px-1 text-xs font-medium text-gray-300">Coinche options</legend>
-            <label className="flex items-center gap-1.5 text-xs text-gray-300">
-              <input type="checkbox" checked={coinched}
-                onChange={event => {
-                  setCoinched(event.target.checked);
-                  if (!event.target.checked) setSurcoinched(false);
-                }} />
-              Coinched ×2
-            </label>
-            <label className="flex items-center gap-1.5 text-xs text-gray-300">
-              <input type="checkbox" checked={surcoinched} disabled={!coinched}
-                onChange={event => setSurcoinched(event.target.checked)} />
-              Sur-coinched ×4
-            </label>
-            <label className="flex items-center gap-1.5 text-xs text-gray-300">
-              <input type="checkbox" checked={capotAnnounced}
-                onChange={event => setCapotAnnounced(event.target.checked)} />
-              Capot annoncé
-            </label>
-          </fieldset>
-        )}
-
-        <div className="flex flex-wrap justify-center gap-3" role="group" aria-label="Card points by team">
-          {isCoinche && (
-            <label className="flex flex-col gap-1 text-sm font-medium text-white">
-              Contract points
-              <input aria-label="Contract points" type="number" min={80} max={160} step={10} placeholder="80–160" required
-                value={contractPoints} onChange={event => setContractPoints(event.target.value)}
-                className="w-[5.5rem] rounded border border-gray-600 bg-gray-950 px-2 py-1.5 text-center text-base text-white placeholder:text-gray-400" />
-            </label>
-          )}
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            <span className={teamTextClasses["1"]}>Team 1</span>
-            <input aria-label="Team 1 card points" type="number" min={0} max={162} step={1}
-              required value={team1PointsInput}
-              onChange={event => {
-                const value = event.target.value;
-                setTeam1PointsInput(value);
-                const points = Number(value);
-                setTeam2PointsInput(value !== "" && Number.isInteger(points) && points >= 0 && points <= 162
-                  ? String(162 - points)
-                  : "");
-              }}
-              className="w-[5.5rem] rounded border border-gray-600 bg-gray-950 px-2 py-1.5 text-center text-base text-white" />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            <span className={teamTextClasses["2"]}>Team 2</span>
-            <input aria-label="Team 2 card points" type="number" min={0} max={162} step={1}
-              required value={team2PointsInput}
-              onChange={event => {
-                const value = event.target.value;
-                setTeam2PointsInput(value);
-                const points = Number(value);
-                setTeam1PointsInput(value !== "" && Number.isInteger(points) && points >= 0 && points <= 162
-                  ? String(162 - points)
-                  : "");
-              }}
-              className="w-[5.5rem] rounded border border-gray-600 bg-gray-950 px-2 py-1.5 text-center text-base text-white" />
-          </label>
-        </div>
-
-        {preview && (
-          <div className="w-full rounded border border-gray-700 bg-gray-950/60 px-2 py-1.5 text-center text-xs text-gray-300" aria-live="polite">
-            <p>
-              Per-player score: <span className={teamTextClasses["1"]}>Team 1 {preview.team1 > 0 ? "+" : ""}{preview.team1}</span>
-              {" · "}<span className={teamTextClasses["2"]}>Team 2 {preview.team2 > 0 ? "+" : ""}{preview.team2}</span>
-            </p>
-            {pendingPoints > 0 && <p className="mt-1 text-amber-300">Includes {pendingPoints} held points from the previous 81–81 game with this lineup.</p>}
-            {preview.heldPoints > 0 && <p className="mt-1 text-amber-300">Takers&apos; 81 points are held for the next game with this lineup.</p>}
-          </div>
-        )}
-        <div className="text-center">
-          <button type="submit" disabled={saving || !validTeams}
-            className="rounded bg-gray-700 px-4 py-1.5 text-sm font-semibold text-white hover:bg-gray-600 disabled:opacity-50">
-            {saving ? "Saving…" : "Save Game"}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={saving || !validTeams}
+          className="bg-gray-800 px-3 py-1.5 text-sm font-bold text-white disabled:opacity-50"
+        >
+          {saving ? "Saving..." : editingGame ? `Save Changes to ${formatTrickGameDate(editingGame.created_at)}` : "Create"}
+        </button>
       </form>
     </main>
   );

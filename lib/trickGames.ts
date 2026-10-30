@@ -1,4 +1,5 @@
 import { Database } from "@/utils/supabase/supabase";
+import { Players } from "@/utils/supabase/types";
 
 export type BeloteGame = Database["public"]["Tables"]["BeloteGames"]["Row"];
 export type CoincheGame = Database["public"]["Tables"]["CoincheGames"]["Row"];
@@ -142,6 +143,72 @@ export function scoreTrickGameHistory(
   }
 
   return { scoresByGameId, pendingByConfiguration };
+}
+
+export function getTrickGamePlayerIds(game: Pick<
+  BeloteGame,
+  "team1_player1_id" | "team1_player2_id" | "team2_player1_id" | "team2_player2_id"
+>) {
+  return [game.team1_player1_id, game.team1_player2_id, game.team2_player1_id, game.team2_player2_id];
+}
+
+export function isTrickGameTaker(game: TrickGameRecord, playerId: string) {
+  return game.contract_team === 1
+    ? game.team1_player1_id === playerId || game.team1_player2_id === playerId
+    : game.team2_player1_id === playerId || game.team2_player2_id === playerId;
+}
+
+// Per-game, per-player scores in the shape GamesTable expects: gameId → playerId → score.
+export function buildTrickGamePlayerTotals(games: TrickGameRecord[], scoresByGameId: Map<string, TrickGameScore>) {
+  const table: Record<string, Record<string, number>> = {};
+  games.forEach(game => {
+    const score = scoresByGameId.get(game.id);
+    if (!score) return;
+    table[game.id] = {
+      [game.team1_player1_id]: score.team1,
+      [game.team1_player2_id]: score.team1,
+      [game.team2_player1_id]: score.team2,
+      [game.team2_player2_id]: score.team2,
+    };
+  });
+  return table;
+}
+
+export function sumTrickGamePlayerTotals(players: Players[], table: Record<string, Record<string, number>>) {
+  const totals: Record<string, number> = {};
+  players.forEach(player => totals[player.id] = 0);
+  Object.values(table).forEach(row => {
+    Object.entries(row).forEach(([playerId, score]) => {
+      if (totals[playerId] !== undefined) totals[playerId] += score;
+    });
+  });
+  return totals;
+}
+
+// Running totals after each game, in the row shape LineChart expects (same as Tarot's aggregateIterativeScores).
+export function aggregateTrickGameIterativeScores(
+  games: TrickGameRecord[],
+  players: Players[],
+  table: Record<string, Record<string, number>>
+) {
+  const runningTotals: Record<string, number> = {};
+  players.forEach(player => runningTotals[player.id] = 0);
+  const chronologicalGames = [...games].sort((a, b) =>
+    a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)
+  );
+  return chronologicalGames.map((game, index) => {
+    const row: Record<string, number | null> = { gameNumber: index + 1 };
+    players.forEach(player => {
+      runningTotals[player.id] += table[game.id]?.[player.id] ?? 0;
+      row[player.Name] = runningTotals[player.id];
+    });
+    return row;
+  });
+}
+
+export function getRecentTrickGamePlayers(games: TrickGameRecord[], players: Players[], gameLimit = 20) {
+  const playerIds = new Set(games.slice(0, gameLimit).flatMap(getTrickGamePlayerIds));
+  return players.filter(player => playerIds.has(player.id));
 }
 
 export function formatTrickGameDate(value: string) {
